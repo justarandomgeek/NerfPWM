@@ -1,0 +1,98 @@
+B0	ICP/BRAKE3
+B1	OC1A/PWM3
+B2	ss/OC1B/PWM4
+B3	mosi/OC2A/PWM5
+B4	miso/gpio2
+B5	sck/gpio3
+B6	gpio4
+B7	gpio5
+
+C0	ADC0
+C1	ADC1
+C2	ADC2
+C3	ADC3
+C4	SDA
+C5	SCL
+C6	Reset
+ADC6	ADC4
+ADC7	ADC5
+
+D0	BRAKE1
+D1	BRAKE2
+D2	INT0/BRAKE6
+D3	INT1/OC2B/PWM6
+D4	BRAKE3
+D5	OC0B/PWM2
+D6	OC0A/PWM1
+D7	BRAKE4
+
+
+PWM expansions:
+
+GND		xxx	XXX	|GND	GND	|GND	GND
+PWMn		D6	D5	B1	B2	B3	D3
+BRAKEn		D0	D1	ICP	D4	D7	INT0	
+
+
+input expansions:
+
+GND	5V	C0
+GND	5V	C1
+GND	5V	C2
+GND	5V	C3
+GND	5V	ADC6
+GND	5V	ADC7 
+
+
+B:	GND	B4	B6
+	5V	B5	B7
+
+
+I2C:	GND	5V	SDA	SCL
+
+ISP	
+
+
+'standard' wiring:
+
+A0: idle rev
+A1: max rev
+A2: RoF
+A3:
+A6:
+A7:
+
+B4: rev button
+B5: trigger
+B6: mag in
+B7: second trigger
+
+PWM1: rev
+PWM2: bolt
+
+PWM34: (this has timer1/ICP, if needed)
+PWM56: (this has INT0/1 if needed)
+
+I2C: counter, mag (port expander+native,
+
+
+ADC interrupt cycles through connected channels (mask somewhere, if not in mask fall through in a case). Update PWMs as needed
+PWMs driven by hardware
+I2C interrupt...?
+CPU loop polls buttons, queues messages for I2C
+maybe PCINTs on B4-7?
+
+
+program ideas:
+idle/full rev speed.
+fire secondary on main trigger when mag empty
+alternate two secondaries, or use secA until empty then switch to secB
+
+
+
+things to connect:
+
+PWMn: flywheels, bolt sleds, external attatchments (swarms, flashlights?)
+
+ADCn: knobs, sliders
+GPIOn: trigger, rev button, extra fire, mode/magsize switches, bolt position button?, jam door(s)?
