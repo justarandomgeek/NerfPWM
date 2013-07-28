@@ -3270,7 +3270,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <part name="Q2" library="SparkFun" deviceset="MOSFET-NCHANNEL" device="SMD" value=""/>
 <part name="GND5" library="SparkFun" deviceset="GND" device=""/>
 <part name="GND6" library="SparkFun" deviceset="GND" device=""/>
-<part name="JP1" library="custom" deviceset="AVR-ISP-6" device="R" value="AVR-ISP-6R"/>
+<part name="JP1" library="custom" deviceset="AVR-ISP-6" device="" value="AVR-ISP-6"/>
 <part name="U$6" library="SparkFun" deviceset="5V" device=""/>
 <part name="GND7" library="SparkFun" deviceset="GND" device=""/>
 <part name="I2C" library="SparkFun" deviceset="M04" device="PTH"/>
