@@ -1,2 +1,14 @@
-*.b#*
-*.s#*
+/*.b#*
+/*.s#*
+
+/code/*.s
+/code/*.o
+/code/*.eep
+/code/*.hex
+/code/*.map
+/code/*.sym
+/code/*.lss
+/code/*.elf
+/code/*.cof
+/code/.dep/
+/code/obj/
