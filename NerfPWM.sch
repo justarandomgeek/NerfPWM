@@ -3227,15 +3227,15 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 </class>
 <class number="3" name="MOTOR" width="0.6096" drill="0.508">
 <clearance class="0" value="0.3048"/>
-<clearance class="1" value="0.3048"/>
+<clearance class="1" value="0.6096"/>
 <clearance class="2" value="0.3048"/>
 <clearance class="3" value="0.1524"/>
 </class>
 <class number="4" name="GND" width="0.3048" drill="0.3302">
 <clearance class="0" value="0.1524"/>
-<clearance class="1" value="0.3048"/>
+<clearance class="1" value="0.6096"/>
 <clearance class="2" value="0.1524"/>
-<clearance class="3" value="0.3048"/>
+<clearance class="3" value="0.6096"/>
 <clearance class="4" value="0.1524"/>
 </class>
 </classes>
@@ -3601,7 +3601,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <junction x="177.8" y="132.08"/>
 </segment>
 </net>
-<net name="VMOT2" class="0">
+<net name="VMOT2" class="3">
 <segment>
 <pinref part="MOT2" gate="G$1" pin="1"/>
 <pinref part="D2" gate="1" pin="A"/>
