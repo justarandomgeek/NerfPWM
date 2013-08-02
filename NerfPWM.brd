@@ -93,23 +93,23 @@
 <text x="38.1" y="9.525" size="0.6096" layer="21">GND</text>
 <text x="38.1" y="15.24" size="0.6096" layer="21">VBAT</text>
 <text x="24.765" y="15.875" size="0.6096" layer="21" rot="R90">5V</text>
-<text x="26.2128" y="20.6248" size="0.4064" layer="21">3</text>
-<text x="26.2128" y="23.2664" size="0.4064" layer="21">4</text>
-<text x="19.2024" y="19.2024" size="0.4064" layer="21">GND</text>
-<text x="21.7932" y="19.2024" size="0.4064" layer="21">PWM</text>
-<text x="23.9268" y="19.2024" size="0.4064" layer="21">BRAKE</text>
-<text x="23.9268" y="5.9436" size="0.4064" layer="21">BRAKE</text>
-<text x="21.6408" y="5.9436" size="0.4064" layer="21">PWM</text>
-<text x="19.2024" y="5.9436" size="0.4064" layer="21">GND</text>
-<text x="26.0604" y="0.6096" size="0.4064" layer="21">5</text>
-<text x="26.2128" y="4.7244" size="0.4064" layer="21">6</text>
-<text x="13.97" y="6.0198" size="0.6096" layer="21">ISP</text>
-<text x="8.89" y="19.685" size="0.4064" layer="21">&lt;- GVA</text>
-<text x="12.065" y="23.495" size="0.4064" layer="21">&lt;- GVDC</text>
-<text x="8.255" y="3.81" size="0.4064" layer="21">&lt;- G46
-&lt;- V57</text>
-<text x="12.954" y="21.336" size="0.4064" layer="21">NerfPWM V1.0
-2013-07-08
+<text x="26.2128" y="20.6248" size="0.6096" layer="21">3</text>
+<text x="26.2128" y="23.2664" size="0.6096" layer="21">4</text>
+<text x="19.9644" y="18.7452" size="0.6096" layer="21">GND</text>
+<text x="21.7932" y="18.7452" size="0.6096" layer="21">PWM</text>
+<text x="23.9268" y="18.7452" size="0.6096" layer="21">BRK</text>
+<text x="24.0792" y="6.096" size="0.6096" layer="21">BRK</text>
+<text x="21.6408" y="6.096" size="0.6096" layer="21">PWM</text>
+<text x="19.2024" y="6.096" size="0.6096" layer="21">GND</text>
+<text x="26.67" y="0.67091875" size="0.6096" layer="21" rot="R135">5</text>
+<text x="26.0604" y="5.7912" size="0.6096" layer="21">6</text>
+<text x="14.1224" y="6.1722" size="0.6096" layer="21">ISP</text>
+<text x="9.4996" y="20.2946" size="0.6096" layer="21">&lt;- GVA</text>
+<text x="10.0838" y="21.4376" size="0.6096" layer="21">GVDC</text>
+<text x="8.822909375" y="4.71086875" size="0.6096" layer="21" rot="R45">&lt;-G46
+  V57</text>
+<text x="12.0396" y="22.2504" size="0.6096" layer="21">NerfPWM V1.?
+2013-08-??
 Thomas Deal</text>
 </plain>
 <libraries>
@@ -763,11 +763,11 @@ Please make sure your boards conform to these design rules.</description>
 <attribute name="VALUE" x="0.635" y="5.08" size="1.27" layer="27"/>
 </element>
 <element name="PWM34" library="pinhead" package="2X03" value="" x="22.225" y="22.225" smashed="yes">
-<attribute name="NAME" x="17.9832" y="21.1074" size="0.6096" layer="21" ratio="10" rot="R90"/>
+<attribute name="NAME" x="21.4122" y="17.8308" size="0.6096" layer="21" ratio="10"/>
 <attribute name="VALUE" x="18.415" y="17.78" size="1.27" layer="27"/>
 </element>
 <element name="PWM56" library="pinhead" package="2X03" value="" x="22.225" y="3.175" smashed="yes">
-<attribute name="NAME" x="18.8722" y="6.5278" size="0.6096" layer="21" ratio="10"/>
+<attribute name="NAME" x="19.6342" y="7.1374" size="0.6096" layer="21" ratio="10"/>
 <attribute name="VALUE" x="18.415" y="-1.27" size="1.27" layer="27"/>
 </element>
 <element name="B" library="pinhead" package="2X03" value="" x="4.445" y="3.175" smashed="yes">
@@ -1060,14 +1060,14 @@ Please make sure your boards conform to these design rules.</description>
 <contactref element="R6" pad="1"/>
 <contactref element="Q1" pad="1"/>
 <contactref element="IC1" pad="30"/>
-<wire x1="12.065" y1="21.59" x2="9.525" y2="21.59" width="0.1524" layer="16"/>
+<wire x1="12.7" y1="21.59" x2="9.525" y2="21.59" width="0.1524" layer="16"/>
 <via x="9.525" y="21.59" extent="1-16" drill="0.3302"/>
 <wire x1="9.525" y1="21.59" x2="9.525" y2="13.335" width="0.1524" layer="1"/>
 <wire x1="9.525" y1="13.335" x2="10.09" y2="12.77" width="0.1524" layer="1"/>
 <wire x1="10.09" y1="12.77" x2="12.2174" y2="12.77" width="0.1524" layer="1"/>
-<via x="12.065" y="21.59" extent="1-16" drill="0.3302"/>
-<wire x1="12.065" y1="21.59" x2="12.065" y2="22.5552" width="0.1524" layer="1"/>
-<wire x1="12.065" y1="22.5552" x2="14.1224" y2="24.6126" width="0.1524" layer="1"/>
+<via x="12.7" y="21.59" extent="1-16" drill="0.3302"/>
+<wire x1="12.7" y1="21.59" x2="12.7" y2="23.1902" width="0.1524" layer="1"/>
+<wire x1="12.7" y1="23.1902" x2="14.1224" y2="24.6126" width="0.1524" layer="1"/>
 <wire x1="14.1224" y1="24.6126" x2="23.0124" y2="24.6126" width="0.1524" layer="1"/>
 <wire x1="23.0124" y1="24.6126" x2="23.495" y2="24.13" width="0.1524" layer="1"/>
 <wire x1="23.495" y1="24.13" x2="23.495" y2="22.86" width="0.1524" layer="1"/>
@@ -1410,83 +1410,6 @@ Please make sure your boards conform to these design rules.</description>
 <wire x1="10.0584" y1="2.286" x2="9.144" y2="2.286" width="0.1524" layer="16"/>
 </signal>
 </signals>
-<errors>
-<approved hash="18,29,3e9195829ab8e54b"/>
-<approved hash="18,29,8149ff270f83a66b"/>
-<approved hash="18,29,cfc0cf992717b1ad"/>
-<approved hash="18,29,d5afbc885598a93a"/>
-<approved hash="18,29,bcf1d9a959a93cf1"/>
-<approved hash="18,29,e23f53218b92aa53"/>
-<approved hash="18,29,638f17b6e4ebd577"/>
-<approved hash="18,29,cb51a90929094b51"/>
-<approved hash="18,29,d301b13931395301"/>
-<approved hash="18,29,c4a1a159215944a1"/>
-<approved hash="18,29,c8b9a571257148b9"/>
-<approved hash="18,29,c089dd415d414089"/>
-<approved hash="18,29,cf69ad212d214f69"/>
-<approved hash="18,29,17232de1ddcba889"/>
-<approved hash="18,29,98324092c0971837"/>
-<approved hash="18,29,e037a897289b603b"/>
-<approved hash="18,29,c83bb09b309f483f"/>
-<approved hash="18,29,d03f989f18835023"/>
-<approved hash="18,29,3823e0836087b827"/>
-<approved hash="18,29,0027c887488b802b"/>
-<approved hash="18,29,682bd08b508fe82f"/>
-<approved hash="18,29,702f388fb8b3f013"/>
-<approved hash="18,29,84c1695a62d06a00"/>
-<approved hash="18,29,075d4fbecfb28751"/>
-<approved hash="18,29,2f5157b2d7b6af55"/>
-<approved hash="18,29,37557fb6ffaab749"/>
-<approved hash="18,29,df4907aa87ae5f4d"/>
-<approved hash="18,29,e74d2faeafa26741"/>
-<approved hash="18,29,8f4137a2b7a60f45"/>
-<approved hash="18,29,9745dfa65f9a1779"/>
-<approved hash="18,29,e62f02778274662c"/>
-<approved hash="18,29,918f72d7f2d4118c"/>
-<approved hash="18,29,89df6ae7eae409dc"/>
-<approved hash="18,29,92677eaffeac1264"/>
-<approved hash="18,29,9e7f7a87fa841e7c"/>
-<approved hash="18,29,9a57069f869c1a54"/>
-<approved hash="18,29,95b776fff6fc15b4"/>
-<approved hash="18,29,e2070e4f8e4c6204"/>
-<approved hash="18,29,ca5e2f366f368a5e"/>
-<approved hash="18,29,406aa542e542006a"/>
-<approved hash="18,29,3583a8fbe8fb7583"/>
-<approved hash="18,29,bff752af12affff7"/>
-<approved hash="18,29,6cc8c9a089a32ccb"/>
-<approved hash="18,29,e6fc43d403d7a6ff"/>
-<approved hash="18,29,93154e6d0e6ed316"/>
-<approved hash="18,29,1961b439f43a5962"/>
-<approved hash="18,29,9700e95f6134e431"/>
-<approved hash="18,29,30d46910d4de92db"/>
-<approved hash="18,29,1f57fc0fbc0f5f57"/>
-<approved hash="18,29,fc531f0b5f0bbc53"/>
-<approved hash="18,29,03cee8e6a8e643ce"/>
-<approved hash="18,29,952046580658d520"/>
-<approved hash="18,29,999b72333233d99b"/>
-<approved hash="18,29,e0ca0be24be2a0ca"/>
-<approved hash="18,29,6af98191c1912af9"/>
-<approved hash="18,29,6686953ed53e2686"/>
-<approved hash="18,29,6233ce1336a29a82"/>
-<approved hash="18,29,cf6f6a072a068f6e"/>
-<approved hash="18,29,bac117995798fac0"/>
-<approved hash="18,29,30b6adceedcf70b7"/>
-<approved hash="18,29,3c0d99a5d9a47c0c"/>
-<approved hash="18,29,59c5f49db49c19c4"/>
-<approved hash="18,29,455ce074a075055d"/>
-<approved hash="18,29,a65803704371e659"/>
-<approved hash="18,29,c3107ea83ea98311"/>
-<approved hash="5,1,4bbe79fe9bfed28e"/>
-<approved hash="19,1,1043b624daa105b7"/>
-<approved hash="5,1,244618b87fdfdc9b"/>
-<approved hash="19,1,b16689e7b7a4e7ca"/>
-<approved hash="19,1,7a235daef2d8572a"/>
-<approved hash="5,1,45fcd5f44f6b8967"/>
-<approved hash="19,1,7f2345b70a93c3f4"/>
-<approved hash="19,1,eaf4413d20a9f4bb"/>
-<approved hash="5,1,7768dbd06967d3ba"/>
-<approved hash="5,1,aa84d640fc8af74e"/>
-</errors>
 </board>
 </drawing>
 <compatibility>
