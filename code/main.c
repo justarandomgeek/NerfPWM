@@ -11,7 +11,7 @@
 #include "nerfpwm.h"
 
 
-//TODO: adjust these as needed these
+//TODO: adjust these as needed
 FUSES = 
     {
         .low = LFUSE_DEFAULT | ~FUSE_CKDIV8,
@@ -26,9 +26,6 @@ FUSES =
 
 tasks:
 
-* read buttons
-* 	-ISR(s)
-* 	-event/callback when button change
 * read adc - in adc.c	
 * I2C add-ons
 * 	-ISR: receive packets, send packet, set flag (or callback?) on receive (or complete?)
@@ -68,6 +65,7 @@ SPM_REDY_vect		unused
 
 #include "mixer.h"
 #include <avr/eeprom.h>
+#include <avr/cpufunc.h>
 
 EEData settings;
 EEMEM EEData ee_settings;
@@ -89,25 +87,174 @@ int main(void)
 	
 	adc_init();
 	
-	sei();
+	// set up PWM1/2 on Timer0 for PWM/BRAKE.
+	//TODO: control this with a setting, split it out somewhere.
+	//TODO: maybe make PWM1 "sing" at startup? Probably have to use CTC mode for a few rounds to do that...
+	TCCR0A = _BV(COM0A1)|_BV(COM0B1)|_BV(WGM00); // Phase-correct PWM, A/B outputs set when match while down-counting, clear when up-counting
+	TCCR0B = _BV(CS00); // clock with CPU clock.
+	OCR0A = 0;
+	OCR0B = 0;
 	
-
+	
+	sei();
+		
+	
+	
+	
 	while(1)
 	{
 		//TODO: main loop here.
 		
-		if(adc_new_data) // or other new-data flags...?
-		{
-			// TODO: calculate mixes, update PWMs
-			//apply_curve(TCNT0, TCNT2);
-			apply_mix(&settings.mixData[0]);
-			
+		for(int i=0;i<MAX_MIXERS;i++)
+ 		{
+ 			apply_mix(&settings.mixData[i]);
+ 		}
 		
+		asm volatile (".global setpwms\nsetpwms:nop"); // usefull for finding this in .lss to look at...
+		// copy output values from mixOuts to appropriate places...
+		if(mixOuts[0])
+		{
+			PORTD &= ~_BV(0); 		// turn off brake FET
+			_NOP();				// tiny delay, wouldn't want to cook a FET by hurrying...
+			TCCR0A |= _BV(COM0A1); 	// enable drive FET PWM
+			OCR0A = mixOuts[0]-1;  	// and set PWM value for it
+		} else {
+			TCCR0A &= ~_BV(COM0A1);	// disable drive FET PWM
+			PORTD &= _BV(6);		// turn off drive FET
+			_NOP();				// tiny delay, wouldn't want to cook a FET by hurrying...
+			PORTD |= _BV(0); 		// turn on brake FET
 		}
 		
+		if(mixOuts[1])
+		{
+			PORTD &= ~_BV(1);
+			_NOP(); // one cycle is cheap, to make sure we dont' burn any FETS!
+			TCCR0A |= _BV(COM0B1);
+			OCR0B = mixOuts[1]-1;
+		} else {
+			TCCR0A &= ~_BV(COM0B1);
+			PORTD &= _BV(5); // make sure drive FET is off...
+			_NOP(); // one cycle is cheap, to make sure we dont' burn any FETS!
+			PORTD |= _BV(1);
+		}	
+	}
+}
+
+
+
+
+
+/*	inputs: (0-FF)
+ *		0x0#
+ *			0-5	ADC 0-5 
+  *			6	ADC temp?
+ *			7	ADC battery reading (using the 1.1 Vbg channel)?
+ *			8	% time idle (or busy?)? 
+ *			9-F	unassigned
+ *		0x1#-0xB#	unassigned
+ *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
+ */ 
+uint8_t read_input(uint8_t inputid)
+{
+	switch (inputid)
+	{
+		case 0x00:
+		case 0x01:
+		case 0x02:
+		case 0x03:
+		case 0x04:
+		case 0x05:
+			return adc_val[inputid];
+		
+		//....
 	
+		default:
+			if(inputid >= 0xC0) return mixOuts[inputid & 0x3F]; 
+			return 0;
 	
 	}
 }
 
 
+/*	switches: (0-7F)
+ *		0x0#
+ *			0	TRUE
+ *			1	FALSE
+ *			2-3	[reserved]  
+ *			4-8	PORTB pins
+ *			9-C	PWM34 pins if used as digital inputs
+ *			D-F	PWM56 pins if used as digital inputs 
+ *			
+ *		0x1#		logic functions
+ */ 
+uint8_t read_logic(int8_t logicid)
+{
+	// negative indexes invert logic output
+	if(logicid < 0) return !read_logic(-logicid);
+	
+	switch (logicid)
+	{
+		case 0x00:	// TRUE
+			return 0xFF;
+		case 0x01:		// FALSE
+			return 0;
+			
+		case 0x04:	// Port B pins broken out to special header
+		case 0x05:
+		case 0x06:
+		case 0x07:
+			return PINB & _BV(logicid);
+			
+		case 0x08:	// PWM3
+			return PINB & _BV(1);
+		case 0x09:	// BRAKE3
+			return PINB & _BV(0);
+		case 0x0A:	// PWM4
+			return PINB & _BV(2);
+		case 0x0B:	// BRAKE4
+			return PIND & _BV(4);
+		
+		case 0x0C:	// PWM5
+			return PINB & _BV(3);
+		case 0x0D:	// BRAKE5
+			return PIND & _BV(7);
+		case 0x0E:	// PWM6
+			return PIND & _BV(3);
+		case 0x0F:	// BRAKE6
+			return PIND & _BV(2);
+		
+	
+		case 0x10:	// Logic functions
+		case 0x11:
+		case 0x12:
+		case 0x13:
+		case 0x14:
+		case 0x15:
+		case 0x16:
+		case 0x17:
+		case 0x18:
+		case 0x19:
+		case 0x1A:
+		case 0x1B:
+		case 0x1C:
+		case 0x1D:
+		case 0x1E:
+		case 0x1F:
+			return read_logic_function(logicid);	
+		
+		case 0x20:	// Analog pins as digital
+		case 0x21:
+		case 0x22:
+		case 0x23:
+		case 0x24:
+		case 0x25:
+		case 0x26:
+		case 0x27:
+			return PINC & _BV(logicid & 0x7);
+		//....
+	
+		default: return 0;
+	
+	}
+
+}

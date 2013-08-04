@@ -346,8 +346,8 @@ DEBUG_HOST = localhost
 # Define programs and commands.
 SHELL = sh
 CC = avr-gcc
-#OBJCOPY = avr-objcopy
-OBJCOPY = c:/WinAVR-20100110/bin/avr-objcopy.exe
+OBJCOPY = avr-objcopy
+#OBJCOPY = c:/WinAVR-20100110/bin/avr-objcopy.exe
 OBJDUMP = avr-objdump
 SIZE = avr-size
 AR = avr-ar rcs
@@ -404,7 +404,7 @@ ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
-all: begin gccversion sizebefore build extcoff stackuse sizeafter end
+all: begin gccversion sizebefore build stackuse sizeafter end
 
 # Change the build target to build a HEX file or a library.
 build: elf hex eep lss sym 

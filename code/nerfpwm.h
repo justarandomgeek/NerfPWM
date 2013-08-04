@@ -7,7 +7,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-
+#define ADC_8BIT
 
 void adc_init(void);
 void wait_read_ADC(void);
