@@ -125,6 +125,50 @@ enum source
 	MIXOUT3F,
 };
 
+enum logic {
+	SW_FALSE=0,
+	SW_TRUE,
+	
+	SW_B4 = 4,
+	SW_B5,
+	SW_B6,
+	SW_B7,
+	
+	SW_PWM3,
+	SW_BRAKE3,
+	SW_PWM4,
+	SW_BRAKE4,
+
+	SW_PWM5,
+	SW_BRAKE5,
+	SW_PWM6,
+	SW_BRAKE6,
+	
+	SW_FUNC0,
+	SW_FUNC1,
+	SW_FUNC2,
+	SW_FUNC3,
+	SW_FUNC4,
+	SW_FUNC5,
+	SW_FUNC6,
+	SW_FUNC7,
+	SW_FUNC8,
+	SW_FUNC9,
+	SW_FUNCA,
+	SW_FUNCB,
+	SW_FUNCC,
+	SW_FUNCD,
+	SW_FUNCE,
+	SW_FUNCF,
+
+	SW_ADC0,
+	SW_ADC1,
+	SW_ADC2,
+	SW_ADC3,
+	SW_ADC4,
+	SW_ADC5,
+};
+
 
 typedef struct t_MixData {
 	enum dest 		destCh:6;		// index to output channel

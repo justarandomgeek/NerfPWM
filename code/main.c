@@ -86,9 +86,6 @@ if(VALUE) 					\
 	BRAKEPORT |= _BV(BRAKEPIN);	\
 }
 
-#define PWMPIN1 PORTD, 6
-#define BRAKEPIN1 PORTD, 0
-
 int main(void)
 {
 #if F_CPU == 8000000UL
@@ -110,7 +107,7 @@ int main(void)
 	//TODO: control this with a setting, split it out somewhere.
 	//TODO: maybe make PWM1 "sing" at startup? Probably have to use CTC mode for a few rounds to do that...
 	TCCR0A = _BV(COM0A1)|_BV(COM0B1)|_BV(WGM00); // Phase-correct PWM, A/B outputs set when match while down-counting, clear when up-counting
-	TCCR0B = _BV(CS00); // clock with CPU clock.
+	TCCR0B = _BV(CS00); // no divider on clock
 	OCR0A = 0;
 	OCR0B = 0;
 	
@@ -192,10 +189,10 @@ uint8_t read_logic(int8_t logicid)
 	
 	switch (logicid)
 	{
-		case 0x00:	// TRUE
-			return 0xFF;
-		case 0x01:		// FALSE
+		case 0x00:	// FALSE
 			return 0;
+		case 0x01:		// TRUE
+			return 0xFF;
 			
 		case 0x04:	// Port B pins broken out to special header
 		case 0x05:
