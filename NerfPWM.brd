@@ -829,7 +829,7 @@ Please make sure your boards conform to these design rules.</description>
 <vertex x="33.655" y="12.065"/>
 <vertex x="27.305" y="12.065"/>
 </polygon>
-<polygon width="0.3048" layer="1" thermals="no">
+<polygon width="0.3048" layer="1" isolate="0.3048" thermals="no">
 <vertex x="35.56" y="5.08"/>
 <vertex x="33.02" y="5.08"/>
 <vertex x="31.75" y="6.35"/>
@@ -837,7 +837,7 @@ Please make sure your boards conform to these design rules.</description>
 <vertex x="33.02" y="8.89"/>
 <vertex x="35.56" y="8.89"/>
 </polygon>
-<polygon width="0.3048" layer="1" thermals="no">
+<polygon width="0.3048" layer="1" isolate="0.3048" thermals="no">
 <vertex x="31.75" y="24.13"/>
 <vertex x="31.75" y="24.765"/>
 <vertex x="37.465" y="24.765"/>
@@ -1408,6 +1408,9 @@ Please make sure your boards conform to these design rules.</description>
 <wire x1="10.9728" y1="3.2004" x2="10.0584" y2="2.286" width="0.1524" layer="16"/>
 <wire x1="9.144" y1="2.286" x2="6.985" y2="4.445" width="0.1524" layer="16"/>
 <wire x1="10.0584" y1="2.286" x2="9.144" y2="2.286" width="0.1524" layer="16"/>
+</signal>
+<signal name="N$1">
+<contactref element="IC1" pad="20"/>
 </signal>
 </signals>
 </board>

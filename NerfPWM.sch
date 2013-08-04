@@ -3920,6 +3920,13 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <wire x1="86.36" y1="58.42" x2="86.36" y2="60.96" width="0.1524" layer="91"/>
 </segment>
 </net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="IC1" gate="1" pin="AREF"/>
+<wire x1="-2.54" y1="104.14" x2="-5.08" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="-5.08" y1="104.14" x2="-5.08" y2="101.6" width="0.1524" layer="91"/>
+</segment>
+</net>
 </nets>
 </sheet>
 </sheets>
