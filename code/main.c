@@ -70,6 +70,25 @@ SPM_REDY_vect		unused
 EEData settings;
 EEMEM EEData ee_settings;
 
+// if value is 0, turn off PWM pin, disable PWM in timer, and turn on brake
+// else, turn off brake, enable PWM, and set OCR to value-1
+#define SET_PWM_OUT(VALUE, BRAKEPORT, BRAKEPIN, PWMPORT, PWMPIN, OCR, TCCR, TCCR_FLAG) \
+if(VALUE) 					\
+{         					\
+	BRAKEPORT &= ~_BV(BRAKEPIN);	\
+	_NOP();					\
+	TCCR |= (TCCR_FLAG);		\
+	OCR = (VALUE)-1;  			\
+} else {                           \
+	TCCR &= ~(TCCR_FLAG);		\
+	PWMPORT &= _BV(PWMPIN);		\
+	_NOP();					\
+	BRAKEPORT |= _BV(BRAKEPIN);	\
+}
+
+#define PWMPIN1 PORTD, 6
+#define BRAKEPIN1 PORTD, 0
+
 int main(void)
 {
 #if F_CPU == 8000000UL
@@ -112,31 +131,8 @@ int main(void)
 		
 		asm volatile (".global setpwms\nsetpwms:nop"); // usefull for finding this in .lss to look at...
 		// copy output values from mixOuts to appropriate places...
-		if(mixOuts[0])
-		{
-			PORTD &= ~_BV(0); 		// turn off brake FET
-			_NOP();				// tiny delay, wouldn't want to cook a FET by hurrying...
-			TCCR0A |= _BV(COM0A1); 	// enable drive FET PWM
-			OCR0A = mixOuts[0]-1;  	// and set PWM value for it
-		} else {
-			TCCR0A &= ~_BV(COM0A1);	// disable drive FET PWM
-			PORTD &= _BV(6);		// turn off drive FET
-			_NOP();				// tiny delay, wouldn't want to cook a FET by hurrying...
-			PORTD |= _BV(0); 		// turn on brake FET
-		}
-		
-		if(mixOuts[1])
-		{
-			PORTD &= ~_BV(1);
-			_NOP(); // one cycle is cheap, to make sure we dont' burn any FETS!
-			TCCR0A |= _BV(COM0B1);
-			OCR0B = mixOuts[1]-1;
-		} else {
-			TCCR0A &= ~_BV(COM0B1);
-			PORTD &= _BV(5); // make sure drive FET is off...
-			_NOP(); // one cycle is cheap, to make sure we dont' burn any FETS!
-			PORTD |= _BV(1);
-		}	
+		SET_PWM_OUT(mixOuts[0], PORTD, 0, PORTD, 6, OCR0A, TCCR0A, _BV(COM0A1));
+		SET_PWM_OUT(mixOuts[1], PORTD, 1, PORTD, 5, OCR0B, TCCR0A, _BV(COM0B1));
 	}
 }
 
@@ -154,18 +150,20 @@ int main(void)
  *		0x1#-0xB#	unassigned
  *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
  */ 
-uint8_t read_input(uint8_t inputid)
+uint8_t read_input(enum source inputid)
 {
 	switch (inputid)
 	{
-		case 0x00:
-		case 0x01:
-		case 0x02:
-		case 0x03:
-		case 0x04:
-		case 0x05:
+		case ADC0:
+		case ADC1:
+		case ADC2:
+		case ADC3:
+		case ADC4:
+		case ADC5:
 			return adc_val[inputid];
 		
+		case TIME_BUSY:
+		     return 0xFF; // TODO: find some way to measure how long it takes to calculate mixes
 		//....
 	
 		default:

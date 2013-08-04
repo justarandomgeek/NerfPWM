@@ -16,15 +16,124 @@
 #define MAX_CURVE9	8
 #define MAX_LOGIC	16
 
+enum dest
+{
+	PWM1	= 0,
+	PWM2,
+	PWM3,
+	PWM4,
+	PWM5,
+	PWM6,
+
+};
+
+enum multiplex
+{
+	UNUSED = 0,
+	ADD,
+	MULTIPLY,
+	REPLACE
+};
+
+
+/*	inputs: (0-FF)
+ *		0x0#
+ *			0-5	ADC 0-5
+ *			6	ADC temp?
+ *			7	ADC battery reading (using the 1.1 Vbg channel)?
+ *			8	% time idle (or busy?)?
+ *			9-F	unassigned
+ *		0x1#-0xB#	unassigned
+ *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
+ */
+enum source
+{
+	ADC0 = 0,
+	ADC1,
+	ADC2,
+	ADC3,
+	ADC4,
+	ADC5,
+	ADCTEMP,
+	
+	TIME_BUSY = 0x08,
+	
+	
+	MIXOUT00 = 0xC0,
+	MIXOUT01,
+	MIXOUT02,
+	MIXOUT03,
+	MIXOUT04,
+	MIXOUT05,
+	MIXOUT06,
+	MIXOUT07,
+	MIXOUT08,
+	MIXOUT09,
+	MIXOUT0A,
+	MIXOUT0B,
+	MIXOUT0C,
+	MIXOUT0D,
+	MIXOUT0E,
+	MIXOUT0F,
+	MIXOUT10,
+	MIXOUT11,
+	MIXOUT12,
+	MIXOUT13,
+	MIXOUT14,
+	MIXOUT15,
+	MIXOUT16,
+	MIXOUT17,
+	MIXOUT18,
+	MIXOUT19,
+	MIXOUT1A,
+	MIXOUT1B,
+	MIXOUT1C,
+	MIXOUT1D,
+	MIXOUT1E,
+	MIXOUT1F,
+	MIXOUT20,
+	MIXOUT21,
+	MIXOUT22,
+	MIXOUT23,
+	MIXOUT24,
+	MIXOUT25,
+	MIXOUT26,
+	MIXOUT27,
+	MIXOUT28,
+	MIXOUT29,
+	MIXOUT2A,
+	MIXOUT2B,
+	MIXOUT2C,
+	MIXOUT2D,
+	MIXOUT2E,
+	MIXOUT2F,
+	MIXOUT30,
+	MIXOUT31,
+	MIXOUT32,
+	MIXOUT33,
+	MIXOUT34,
+	MIXOUT35,
+	MIXOUT36,
+	MIXOUT37,
+	MIXOUT38,
+	MIXOUT39,
+	MIXOUT3A,
+	MIXOUT3B,
+	MIXOUT3C,
+	MIXOUT3D,
+	MIXOUT3E,
+	MIXOUT3F,
+};
+
 
 typedef struct t_MixData {
-	uint8_t destCh:6;		// index to output channel
-	uint8_t mltpx:2;		// multiplex method 0=unused, 1=+ 2=* 3=replace
-	uint8_t srcRaw;		// index to analog inputs
-	uint8_t weight;		// output = input * (weight+1)/256. There's no reason to use a 0 weight, so by adding one we get range 1-256, which makes the divide easy! 
-	int8_t  offset;		// output = input + offset 
-	int8_t  logic;			// index to digital input, or logic function. negative index is !index. if this condition is false, skip this mix.
-	int8_t  curve;			// index to a curve function, 
+	enum dest 		destCh:6;		// index to output channel
+	enum multiplex		mltpx:2;		// multiplex method 0=unused, 1=+ 2=* 3=replace
+	enum source		srcRaw;		// index to analog inputs
+	uint8_t			weight;		// output = input * (weight+1)/256. There's no reason to use a 0 weight, so by adding one we get range 1-256, which makes the divide easy!
+	int8_t			offset;		// output = (weighted)input + offset
+	int8_t			logic;		// index to digital input, or logic function. negative index is !index. if this condition is false, skip this mix.
+	int8_t			curve;			// index to a curve function,
 	
 } PACKED MixData;
 
