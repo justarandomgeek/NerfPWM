@@ -209,10 +209,7 @@ uint8_t read_logic(int8_t logicid)
 		case 0x01:		// TRUE
 			return 0xFF;
 			
-		case 0x04:	// Port B pins broken out to special header
-		case 0x05:
-		case 0x06:
-		case 0x07:
+		case 0x04 ... 0x07:	// Port B pins broken out to special header
 			return PINB & _BV(logicid);
 			
 		case 0x08:	// PWM3
@@ -234,32 +231,10 @@ uint8_t read_logic(int8_t logicid)
 			return PIND & _BV(2);
 		
 	
-		case 0x10:	// Logic functions
-		case 0x11:
-		case 0x12:
-		case 0x13:
-		case 0x14:
-		case 0x15:
-		case 0x16:
-		case 0x17:
-		case 0x18:
-		case 0x19:
-		case 0x1A:
-		case 0x1B:
-		case 0x1C:
-		case 0x1D:
-		case 0x1E:
-		case 0x1F:
+		case 0x10 ... 0x1F:	// Logic functions
 			return read_logic_function(logicid);	
 		
-		case 0x20:	// Analog pins as digital
-		case 0x21:
-		case 0x22:
-		case 0x23:
-		case 0x24:
-		case 0x25:
-		case 0x26:
-		case 0x27:
+		case 0x20 ... 0x27:	// Analog pins as digital
 			return PINC & _BV(logicid & 0x7);
 		//....
 	
