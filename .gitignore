@@ -12,3 +12,4 @@
 /code/*.cof
 /code/.dep/
 /code/obj/
+/code/__avr_gdbinit
