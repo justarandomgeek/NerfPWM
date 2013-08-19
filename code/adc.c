@@ -16,9 +16,9 @@ uint8_t adc_state;
 volatile uint8_t adc_new_data;
 
 #ifdef ADC_8BIT
-uint8_t adc_val[6];
+volatile uint8_t adc_val[6];
 #else
-uint16_t adc_val[6];
+volatile uint16_t adc_val[6];
 #endif
 
 
@@ -51,15 +51,8 @@ void adc_init(void)
 	// no ADC auto-trigger
 	ADCSRB = 0;
 		
-#if   F_CPU == 8000000UL
-	// enable ADC, start first conv (slower than others), clk/64
-	ADCSRA = _BV(ADEN)|_BV(ADSC)|_BV(ADPS2)|_BV(ADPS1)|_BV(ADIE);
-#elif F_CPU == 1000000UL
-	// enable ADC, start first conv (slower than others), clk/8
-	ADCSRA = _BV(ADEN)|_BV(ADSC)|_BV(ADPS1)|_BV(ADPS0)|_BV(ADIE);
-#else
-#error Incorrect clock speed
-#endif
+	// enable ADC, start first conv (slower than others), clk/128
+	ADCSRA = _BV(ADEN)|_BV(ADSC)|_BV(ADPS2)|_BV(ADPS1)|_BV(ADPS0)|_BV(ADIE);
 	
 	// disable digital inputs on port C[0-3]
 	DIDR0  = 0x0F;
@@ -81,7 +74,7 @@ ISR(ADC_vect)
 #endif	
 
 	// set new-data flag
-	adc_new_data = adc_state;
+	adc_new_data = _BV(adc_state);
 	
 	
 	adc_val[adc_state++] = aval;

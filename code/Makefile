@@ -42,7 +42,8 @@
 
 # MCU name
 #MCU = atmega48
-MCU = atmega168p
+#MCU = atmega168p
+MCU = atmega328p
 
 
 # Processor frequency.
@@ -280,6 +281,8 @@ LDFLAGS += $(EXTRALIBS)
 # Type: avrdude -c ?
 # to get a full listing.
 #
+#AVRDUDE_PROGRAMMER = dragon_isp
+#AVRDUDE_PROGRAMMER = dragon_dw
 AVRDUDE_PROGRAMMER = usbtiny
 
 # com1 = serial port. Use lpt1 to connect to parallel port.
@@ -321,14 +324,14 @@ DEBUG_MFREQ = $(F_CPU)
 DEBUG_UI = insight
 
 # Set the debugging back-end to either avarice, simulavr.
-#DEBUG_BACKEND = avarice
-DEBUG_BACKEND = simulavr
+DEBUG_BACKEND = avarice
+#DEBUG_BACKEND = simulavr
 
 # GDB Init Filename.
 GDBINIT_FILE = __avr_gdbinit
 
 # When using avarice settings for the JTAG
-JTAG_DEV = /dev/com1
+JTAG_DEV = usb
 
 # Debugging port used to communicate between GDB / avarice / simulavr.
 DEBUG_PORT = 4242
@@ -470,6 +473,12 @@ gccversion :
 program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
+flash: $(TARGET).hex
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
+
+eeprom: $(TARGET).eep
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_EEPROM)
+
 
 # Generate avr-gdb config/init file which does the following:
 #     define the reset signal, load the target file, connect to target, and set 
@@ -489,7 +498,7 @@ endif
 debug: gdb-config $(TARGET).elf
 ifeq ($(DEBUG_BACKEND), avarice)
 	@echo Starting AVaRICE - Press enter when "waiting to connect" message displays.
-	@$(WINSHELL) /c start avarice --jtag $(JTAG_DEV) --erase --program --file \
+	@$(WINSHELL) /c	start avarice -w -g --erase --program --file \
 	$(TARGET).elf $(DEBUG_HOST):$(DEBUG_PORT)
 	@$(WINSHELL) /c pause
 

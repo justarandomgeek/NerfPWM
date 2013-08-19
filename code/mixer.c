@@ -20,12 +20,14 @@ void apply_mix(MixData *mix)
 			mixval = ((int16_t)mixval * ((int16_t)mix->weight+1)) >> 8;
 			mixval += mix->offset;
 			
-			switch (mix->mltpx)
+			switch ((uint8_t)mix->mltpx)
 			{
 				case ADD:
 					mixOuts[mix->destCh] += mixval;
+					break;
 				case MULTIPLY:
 					mixOuts[mix->destCh] *= mixval;
+					break;
 				case REPLACE:
 					mixOuts[mix->destCh]  = mixval;
 					break;

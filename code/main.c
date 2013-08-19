@@ -67,8 +67,26 @@ SPM_REDY_vect		unused
 #include <avr/eeprom.h>
 #include <avr/cpufunc.h>
 
+
+/*
+defaults: 
+
+PWM1 =  idle (0=brake, or 50ish probably for idle-active.
+PWM1 += ADC0 when [rev button]
+
+PWM2 = brake
+PWM2 = ADC1 when [trigger]
+*/
+
+#define SIMPLEMIX(dest,mlpx,src) {.destCh = (dest),.mltpx=(mlpx),.srcRaw=(src),.weight=0xff,.offset=0,.logic=SW_TRUE,.curve=0}
+
 EEData settings;
-EEMEM EEData ee_settings;
+EEMEM EEData ee_settings= {
+	.mixData = {SIMPLEMIX(PWM1,REPLACE,ADC0), SIMPLEMIX(PWM1,ADD,ADC1)},
+	.curves5={},
+	.curves9={},
+	.logicData={}
+};
 
 // if value is 0, turn off PWM pin, disable PWM in timer, and turn on brake
 // else, turn off brake, enable PWM, and set OCR to value-1
@@ -88,16 +106,10 @@ if(VALUE) 					\
 
 int main(void)
 {
-#if F_CPU == 8000000UL
 	// in case CLK_DIV_8 is programmed
 	clock_prescale_set(clock_div_1);
-#elif F_CPU == 1000000UL
-	clock_prescale_set(clock_div_8);
-#else
-#error Incorrect clock speed
-#endif
 	
-	
+	eeprom_read_block(&settings,&ee_settings,sizeof(settings));
 	
 	//init_twi();
 	
@@ -106,30 +118,33 @@ int main(void)
 	// set up PWM1/2 on Timer0 for PWM/BRAKE.
 	//TODO: control this with a setting, split it out somewhere.
 	//TODO: maybe make PWM1 "sing" at startup? Probably have to use CTC mode for a few rounds to do that...
-	TCCR0A = _BV(COM0A1)|_BV(COM0B1)|_BV(WGM00); // Phase-correct PWM, A/B outputs set when match while down-counting, clear when up-counting
+	TCCR0A = _BV(WGM00); // Phase-correct PWM, A/B outputs set when match while down-counting, clear when up-counting
 	TCCR0B = _BV(CS00); // no divider on clock
 	OCR0A = 0;
 	OCR0B = 0;
 	
+	DDRD |= _BV(1)|_BV(1)|_BV(5)|_BV(6);
+		
 	
 	sei();
 		
 	
-	
-	
-	while(1)
-	{
-		//TODO: main loop here.
+	while(1){
+		if(adc_new_data)
+		{
+			adc_new_data=0;
+			
+			//for(int i=0;i<MAX_MIXERS;i++)
+			for(int i=0;i<2;i++)
+ 			{
+ 				apply_mix(&settings.mixData[i]);
+ 			}
 		
-		for(int i=0;i<MAX_MIXERS;i++)
- 		{
- 			apply_mix(&settings.mixData[i]);
- 		}
-		
-		asm volatile (".global setpwms\nsetpwms:nop"); // usefull for finding this in .lss to look at...
-		// copy output values from mixOuts to appropriate places...
-		SET_PWM_OUT(mixOuts[0], PORTD, 0, PORTD, 6, OCR0A, TCCR0A, _BV(COM0A1));
-		SET_PWM_OUT(mixOuts[1], PORTD, 1, PORTD, 5, OCR0B, TCCR0A, _BV(COM0B1));
+			// copy output values from mixOuts to appropriate places...
+			SET_PWM_OUT(mixOuts[0], PORTD, 0, PORTD, 6, OCR0A, TCCR0A, _BV(COM0A1));
+			SET_PWM_OUT(mixOuts[1], PORTD, 1, PORTD, 5, OCR0B, TCCR0A, _BV(COM0B1));	
+			
+		}
 	}
 }
 

@@ -13,9 +13,9 @@ void adc_init(void);
 void wait_read_ADC(void);
 
 #ifdef ADC_8BIT
-extern uint8_t adc_val[6];
+extern volatile uint8_t adc_val[6];
 #else
-extern uint16_t adc_val[6];
+extern volatile uint16_t adc_val[6];
 #endif
 
 extern volatile uint8_t adc_new_data;
