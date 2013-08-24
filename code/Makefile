@@ -86,6 +86,9 @@ SRC = $(TARGET).c
 #SRC += twi.c
 SRC += adc.c
 SRC += mixer.c
+SRC += pwm.c
+SRC += fuses.c
+SRC += curve.c
 
 
 # List C++ source files here. (C dependencies are automatically generated.)

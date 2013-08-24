@@ -8,19 +8,11 @@
 /* ========================================================================== */
 
 #include <avr/power.h>
+#include <avr/eeprom.h>
 #include "nerfpwm.h"
-
-
-//TODO: adjust these as needed
-FUSES = 
-    {
-        .low = LFUSE_DEFAULT | ~FUSE_CKDIV8,
-        .high = HFUSE_DEFAULT & FUSE_EESAVE,
-        .extended = EFUSE_DEFAULT,
-    };
-
-
-
+#include "mixer.h"
+#include "adc.h"
+#include "pwm.h"
 
 /*
 
@@ -63,9 +55,6 @@ TWI_vect			used for packet net of peripherals
 SPM_REDY_vect		unused
 */
 
-#include "mixer.h"
-#include <avr/eeprom.h>
-#include <avr/cpufunc.h>
 
 
 /*
@@ -88,21 +77,7 @@ EEMEM EEData ee_settings= {
 	.logicData={}
 };
 
-// if value is 0, turn off PWM pin, disable PWM in timer, and turn on brake
-// else, turn off brake, enable PWM, and set OCR to value-1
-#define SET_PWM_OUT(VALUE, BRAKEPORT, BRAKEPIN, PWMPORT, PWMPIN, OCR, TCCR, TCCR_FLAG) \
-if(VALUE) 					\
-{         					\
-	BRAKEPORT &= ~_BV(BRAKEPIN);	\
-	_NOP();					\
-	TCCR |= (TCCR_FLAG);		\
-	OCR = (VALUE)-1;  			\
-} else {                           \
-	TCCR &= ~(TCCR_FLAG);		\
-	PWMPORT &= _BV(PWMPIN);		\
-	_NOP();					\
-	BRAKEPORT |= _BV(BRAKEPIN);	\
-}
+
 
 int main(void)
 {
@@ -114,16 +89,7 @@ int main(void)
 	//init_twi();
 	
 	adc_init();
-	
-	// set up PWM1/2 on Timer0 for PWM/BRAKE.
-	//TODO: control this with a setting, split it out somewhere.
-	//TODO: maybe make PWM1 "sing" at startup? Probably have to use CTC mode for a few rounds to do that...
-	TCCR0A = _BV(WGM00); // Phase-correct PWM, A/B outputs set when match while down-counting, clear when up-counting
-	TCCR0B = _BV(CS00); // no divider on clock
-	OCR0A = 0;
-	OCR0B = 0;
-	
-	DDRD |= _BV(1)|_BV(1)|_BV(5)|_BV(6);
+	pwm_init();
 		
 	
 	sei();
@@ -134,15 +100,13 @@ int main(void)
 		{
 			adc_new_data=0;
 			
-			//for(int i=0;i<MAX_MIXERS;i++)
-			for(int i=0;i<2;i++)
- 			{
+			for(int i=0;i<MAX_MIXERS;i++)
+			{
  				apply_mix(&settings.mixData[i]);
  			}
 		
 			// copy output values from mixOuts to appropriate places...
-			SET_PWM_OUT(mixOuts[0], PORTD, 0, PORTD, 6, OCR0A, TCCR0A, _BV(COM0A1));
-			SET_PWM_OUT(mixOuts[1], PORTD, 1, PORTD, 5, OCR0B, TCCR0A, _BV(COM0B1));	
+			pwm_write(&mixOuts[0]);	
 			
 		}
 	}
@@ -151,95 +115,3 @@ int main(void)
 
 
 
-
-/*	inputs: (0-FF)
- *		0x0#
- *			0-5	ADC 0-5 
-  *			6	ADC temp?
- *			7	ADC battery reading (using the 1.1 Vbg channel)?
- *			8	% time idle (or busy?)? 
- *			9-F	unassigned
- *		0x1#-0xB#	unassigned
- *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
- */ 
-uint8_t read_input(enum source inputid)
-{
-	switch (inputid)
-	{
-		case ADC0:
-		case ADC1:
-		case ADC2:
-		case ADC3:
-		case ADC4:
-		case ADC5:
-			return adc_val[inputid];
-		
-		case TIME_BUSY:
-		     return 0xFF; // TODO: find some way to measure how long it takes to calculate mixes
-		//....
-	
-		default:
-			if(inputid >= 0xC0) return mixOuts[inputid & 0x3F]; 
-			return 0;
-	
-	}
-}
-
-
-/*	switches: (0-7F)
- *		0x0#
- *			0	TRUE
- *			1	FALSE
- *			2-3	[reserved]  
- *			4-8	PORTB pins
- *			9-C	PWM34 pins if used as digital inputs
- *			D-F	PWM56 pins if used as digital inputs 
- *			
- *		0x1#		logic functions
- */ 
-uint8_t read_logic(int8_t logicid)
-{
-	// negative indexes invert logic output
-	if(logicid < 0) return !read_logic(-logicid);
-	
-	switch (logicid)
-	{
-		case 0x00:	// FALSE
-			return 0;
-		case 0x01:		// TRUE
-			return 0xFF;
-			
-		case 0x04 ... 0x07:	// Port B pins broken out to special header
-			return PINB & _BV(logicid);
-			
-		case 0x08:	// PWM3
-			return PINB & _BV(1);
-		case 0x09:	// BRAKE3
-			return PINB & _BV(0);
-		case 0x0A:	// PWM4
-			return PINB & _BV(2);
-		case 0x0B:	// BRAKE4
-			return PIND & _BV(4);
-		
-		case 0x0C:	// PWM5
-			return PINB & _BV(3);
-		case 0x0D:	// BRAKE5
-			return PIND & _BV(7);
-		case 0x0E:	// PWM6
-			return PIND & _BV(3);
-		case 0x0F:	// BRAKE6
-			return PIND & _BV(2);
-		
-	
-		case 0x10 ... 0x1F:	// Logic functions
-			return read_logic_function(logicid);	
-		
-		case 0x20 ... 0x27:	// Analog pins as digital
-			return PINC & _BV(logicid & 0x7);
-		//....
-	
-		default: return 0;
-	
-	}
-
-}

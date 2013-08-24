@@ -8,6 +8,7 @@
 /* ========================================================================== */
 
 #include "nerfpwm.h"
+#include "adc.h"
 
 // used internal by ADC ISR to keep track of state
 uint8_t adc_state;
@@ -15,12 +16,8 @@ uint8_t adc_state;
 // set by ISR when a channel finishes, shared to app (which may clear it)
 volatile uint8_t adc_new_data;
 
-#ifdef ADC_8BIT
-volatile uint8_t adc_val[6];
-#else
-volatile uint16_t adc_val[6];
-#endif
 
+volatile adc_t adc_val[6];
 
 /*
 * read ADC values
@@ -40,11 +37,12 @@ volatile uint16_t adc_val[6];
 void adc_init(void)
 {
 	// select AREF = 5V, left-alight result, select chan 0
-	ADMUX  = _BV(REFS0)
+	
 #ifdef ADC_8BIT
-		|_BV(ADLAR)
+	ADMUX  = _BV(REFS0)|_BV(ADLAR);
+#else 
+	ADMUX  = _BV(REFS0);
 #endif		
-		|0;
 	
 	adc_state =  0;
 		
@@ -56,11 +54,6 @@ void adc_init(void)
 	
 	// disable digital inputs on port C[0-3]
 	DIDR0  = 0x0F;
-	
-	
-	
-	
-	
 }
 
 

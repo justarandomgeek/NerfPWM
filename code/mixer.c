@@ -1,13 +1,12 @@
-
+#include <avr/io.h>
 #include <stdint.h>
 #include "mixer.h"
+#include "adc.h"
 
-extern EEData settings;
+
 uint8_t mixOuts[0x40];
 
-uint8_t apply_curve_function(uint8_t input, int8_t curveid);
-uint8_t apply_curve_5point(uint8_t input, int8_t curveid);
-uint8_t apply_curve_9point(uint8_t input, int8_t curveid);
+
 
 void apply_mix(MixData *mix)
 {
@@ -42,6 +41,102 @@ void apply_mix(MixData *mix)
 		}
 	}
 }
+
+
+
+
+/*	inputs: (0-FF)
+ *		0x0#
+ *			0-5	ADC 0-5 
+  *			6	ADC temp?
+ *			7	ADC battery reading (using the 1.1 Vbg channel)?
+ *			8	% time idle (or busy?)? 
+ *			9-F	unassigned
+ *		0x1#-0xB#	unassigned
+ *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
+ */ 
+uint8_t read_input(enum source inputid)
+{
+	switch (inputid)
+	{
+		case ADC0:
+		case ADC1:
+		case ADC2:
+		case ADC3:
+		case ADC4:
+		case ADC5:
+			return adc_val[inputid];
+		
+		case TIME_BUSY:
+		     return 0xFF; // TODO: find some way to measure how long it takes to calculate mixes
+		//....
+	
+		default:
+			if(inputid >= 0xC0) return mixOuts[inputid & 0x3F]; 
+			return 0;
+	
+	}
+}
+
+
+/*	switches: (0-7F)
+ *		0x0#
+ *			0	TRUE
+ *			1	FALSE
+ *			2-3	[reserved]  
+ *			4-8	PORTB pins
+ *			9-C	PWM34 pins if used as digital inputs
+ *			D-F	PWM56 pins if used as digital inputs 
+ *			
+ *		0x1#		logic functions
+ */ 
+uint8_t read_logic(int8_t logicid)
+{
+	// negative indexes invert logic output
+	if(logicid < 0) return !read_logic(-logicid);
+	
+	switch (logicid)
+	{
+		case 0x00:	// FALSE
+			return 0;
+		case 0x01:		// TRUE
+			return 0xFF;
+			
+		case 0x04 ... 0x07:	// Port B pins broken out to special header
+			return PINB & _BV(logicid);
+			
+		case 0x08:	// PWM3
+			return PINB & _BV(1);
+		case 0x09:	// BRAKE3
+			return PINB & _BV(0);
+		case 0x0A:	// PWM4
+			return PINB & _BV(2);
+		case 0x0B:	// BRAKE4
+			return PIND & _BV(4);
+		
+		case 0x0C:	// PWM5
+			return PINB & _BV(3);
+		case 0x0D:	// BRAKE5
+			return PIND & _BV(7);
+		case 0x0E:	// PWM6
+			return PIND & _BV(3);
+		case 0x0F:	// BRAKE6
+			return PIND & _BV(2);
+		
+	
+		case 0x10 ... 0x1F:	// Logic functions
+			return read_logic_function(logicid);	
+		
+		case 0x20 ... 0x27:	// Analog pins as digital
+			return PINC & _BV(logicid & 0x7);
+		//....
+	
+		default: return 0;
+	
+	}
+
+}
+
 
 /*
 typedef struct t_LogicData { // Custom Switches data
@@ -102,123 +197,4 @@ uint8_t read_logic_function(int8_t logicid)
 			return !(read_logic(settings.logicData[logicid].v1)) != !(read_logic(settings.logicData[logicid].v2));
 	}
 }
-
-
-/*	curves:
- *		0x0#
- *			0	x
- *			1 	x
- *			2-F	reserved 
- *		0x1#
- *			0-7	5-pt curves
- *			8-F	9-pt curves  
- *		0x2#		reserved
- *		0x3#		reserved 
- */  
-uint8_t apply_curve(uint8_t input, int8_t curveid) 
-{
-	// for negative curve-id values, use reversed input, and run as if positive curveid.
-	if(curveid < 0)
-	{
-		input = UINT8_MAX - input;
-		curveid = -curveid;
-	}
-	
-	
-	switch(curveid&0x70)
-	{
-		case 0x00:
-			// negating these doesn't make a lot of sense, but for all but 0 you still can.
-			return apply_curve_function(input, curveid & 0x0F);
-		case 0x10:
-				if(curveid&0x08)
-				{
-					return apply_curve_5point(input,curveid & 0x07);
-				} else {
-					return apply_curve_9point(input,curveid & 0x07);
-				}
-		//case 0x20:
-		//case 0x30:
-		//case 0x40:
-		//case 0x50:
-		//case 0x60:
-		//case 0x70:
-		default:
-			return input; // implemented as nop, but subject to change as new curves are defined....
-	
-	
-	}
-}
-
-uint8_t apply_curve_function(uint8_t input, int8_t curveid)
-{
-	// reserved for future use...
-	return input;
-}
-
-#define interpolate(input,steps,first,last) (int8_t)((int16_t)(input)*((last)-(first)))/(steps) + (first)
-#define interpolate_5pt(input,range,id) interpolate((input),64,settings.curves5[curveid][(range)],settings.curves5[id][(range)+1])
-#define interpolate_9pt(input,range,id) interpolate((input),32,settings.curves9[curveid][(range)],settings.curves9[id][(range)+1]) 
-
-uint8_t apply_curve_5point(uint8_t input, int8_t curveid)
-{
-	curveid = curveid & 0x7;
-	switch(input>>6)
-	{
-	
-		default: // shouldn't be needed, as all cases are covered, but gcc doesn't realize that.
-		case 0x0:
-			if(input == 0x00) return settings.curves5[curveid][0];
-			return interpolate_5pt(input-0x00,0,curveid);
-		case 0x1:
-			if(input == 0x40) return settings.curves5[curveid][1];
-			return interpolate_5pt(input-0x40,1,curveid);
-		case 0x2:
-			if(input == 0x80) return settings.curves5[curveid][2];			
-			return interpolate_5pt(input-0x80,2,curveid);
-		case 0x3:
-			if(input == 0xC0) return settings.curves5[curveid][3];
-			if(input == 0xFF) return settings.curves5[curveid][4];
-			return interpolate_5pt(input-0xC0,3,curveid);
-	
-	}
-}
-	
-uint8_t apply_curve_9point(uint8_t input, int8_t curveid)
-{
-	curveid = curveid & 0x7;
-	switch(input>>5)
-	{
-		default: // shouldn't be needed, as all cases are covered, but gcc doesn't realize that.	
-		case 0x0:
-			if(input == 0x00) return settings.curves9[curveid][0];
-			return interpolate_9pt(input-0x00,0,curveid);
-		case 0x1:
-			if(input == 0x20) return settings.curves9[curveid][1];
-			return interpolate_9pt(input-0x20,1,curveid);
-		case 0x2:
-			if(input == 0x40) return settings.curves9[curveid][2];
-			return interpolate_9pt(input-0x40,2,curveid);
-		case 0x3:
-			if(input == 0x60) return settings.curves9[curveid][3];
-			return interpolate_9pt(input-0x60,3,curveid);
-		case 0x4:
-			if(input == 0x80) return settings.curves9[curveid][4];
-			return interpolate_9pt(input-0x80,4,curveid);
-		case 0x5:
-			if(input == 0xA0) return settings.curves9[curveid][5];
-			return interpolate_9pt(input-0xA0,5,curveid);
-		case 0x6:
-			if(input == 0xC0) return settings.curves9[curveid][6];
-			return interpolate_9pt(input-0xC0,6,curveid);
-		case 0x7:
-			if(input == 0xE0) return settings.curves9[curveid][7];
-			if(input == 0xFF) return settings.curves9[curveid][8];
-			return interpolate_9pt(input-0xE0,7,curveid);
-	}
-}
-
-
-
-
 

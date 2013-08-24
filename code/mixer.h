@@ -195,6 +195,7 @@ typedef struct t_EEData {
 } PACKED EEData;
 
 extern uint8_t mixOuts[0x40];
+extern EEData settings;
 
 uint8_t read_logic(int8_t logicid);
 uint8_t read_logic_function(int8_t logicid);
