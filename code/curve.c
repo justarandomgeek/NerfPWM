@@ -10,32 +10,30 @@
  *		0x2#		reserved
  *		0x3#		reserved 
  */  
-
-#define interpolate(input,steps,first,last) (int8_t)((int16_t)(input)*(uint8_t)((last)-(first)))/(steps) + (first)
-
-static uint8_t interpolate_5pt(uint8_t input, uint8_t range, uint8_t curve[])
+__attribute__((noinline)) static uint8_t interpolate_5pt(uint8_t input, uint8_t range, const uint8_t curve[])
 {
 	uint16_t x;
+	uint8_t y;
 	uint8_t first = curve[range];
 	uint8_t last = curve[range+1];
 	x = input * (uint8_t)(last - first);
-	x /= 64;
-	x += first;
-	return (uint8_t)(x & 0xFF);
-	//return interpolate((input),64,settings.curves5[id][(range)],settings.curves5[id][(range)+1]);
+	//y = x/64;
+	y = (x<<2)>>8;
+	y += first;
+	return y;
 }
 
-static uint8_t interpolate_9pt(uint8_t input, uint8_t range, uint8_t curve[])
+__attribute__((noinline)) static uint8_t interpolate_9pt(uint8_t input, uint8_t range, const uint8_t curve[])
 {
 	uint16_t x;
+	uint8_t y;
 	uint8_t first = curve[range];
 	uint8_t last = curve[range+1];
 	x = input * (uint8_t)(last - first);
-	x /= 32;
-	x += first;
-	return (uint8_t)(x & 0xFF);
-	
-	//return interpolate((input),32,settings.curves9[id][(range)],settings.curves9[id][(range)+1]);
+	//y = x/32;
+	y = (x<<3)>>8;
+	y += first;
+	return y;
 } 
 
 static uint8_t apply_curve_5point(uint8_t input, int8_t curveid)
@@ -93,6 +91,12 @@ static uint8_t apply_curve_9point(uint8_t input, int8_t curveid)
 
 uint8_t apply_curve(uint8_t input, int8_t curveid) 
 {
+	if(curveid == -0x80)
+	{
+		// -0x80 is special, there is no +0x80. use 0 instead, and invert input.
+		input = UINT8_MAX - input;
+		curveid = 0;
+	}
 	// for negative curve-id values, use reversed input, and run as if positive curveid.
 	if(curveid < 0)
 	{
@@ -101,21 +105,18 @@ uint8_t apply_curve(uint8_t input, int8_t curveid)
 	}
 	
 	
-	switch(curveid&0x70)
+	switch(curveid&0x7F)
 	{
-		case 0x10:
+		case 0x00: // 00 is NOP. -0x80 also comes here for inverted value.
+			return input;
+		case 0x10 ... 0x1F:
 				if(curveid&0x08)
 				{
 					return apply_curve_5point(input,curveid & 0x07);
 				} else {
 					return apply_curve_9point(input,curveid & 0x07);
 				}
-		//case 0x20:
-		//case 0x30:
-		//case 0x40:
-		//case 0x50:
-		//case 0x60:
-		//case 0x70:
+
 		default:
 			return input; // implemented as nop, but subject to change as new curves are defined....
 	

@@ -89,6 +89,7 @@ SRC += mixer.c
 SRC += pwm.c
 SRC += fuses.c
 SRC += curve.c
+SRC += logic.c
 
 
 # List C++ source files here. (C dependencies are automatically generated.)
