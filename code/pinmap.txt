@@ -31,7 +31,7 @@ PWM expansions:
 
 GND		xxx	XXX	|GND	GND	|GND	GND
 PWMn		D6	D5	B1	B2	B3	D3
-BRAKEn		D0	D1	ICP	D4	D7	INT0	
+BRAKEn		D0	D1	B0	D4	D7	D2
 
 
 input expansions:
@@ -88,6 +88,15 @@ idle/full rev speed.
 fire secondary on main trigger when mag empty
 alternate two secondaries, or use secA until empty then switch to secB
 
+
+
+pin options:
+ADC+dig pins:	(4 x 2b)	if, ip, o, ADC
+
+ADC-only pins:	(2 x 1b)	disabled, ADC
+PWM/BRAKE pins: (2 x 3b)	4if, 4ip, 4o, 2o2if, 2o2ip, 3o1ip, 1o3ip, PWM/BRAKE
+
+B header:	(4 x 2b)	if, ip, ol, oh (initial state)
 
 
 things to connect:
