@@ -16,13 +16,77 @@ static void pwm12_init(void)
 	DDRD |= _BV(1)|_BV(1)|_BV(5)|_BV(6);
 }
 
-//static void pwm34_init(void);
-//static void pwm56_init(void);
+static void pwm34_init(void)
+{
+	//  0    1   2      3      4      5      6          7  
+	//4if, 4ip, 4o, 2o2if, 2o2ip, 3o1ip, 1o3ip, PWM/BRAKE
+	// in 3/1, odd pin out is BRAKE4
+	// in 2/2, outputs are PWM4/BRAKE4
+	switch(settings.pinData.PWM34Mode)
+	{
+		case 0: // all four as inputs, floating
+			DDRB  &= ~(_BV(0)|_BV(1)|_BV(2));
+			DDRD  &= ~(_BV(4));
+			PORTB &= ~(_BV(0)|_BV(1)|_BV(2));
+			PORTD &= ~(_BV(4));
+			break;
+		case 1: // all four as inputs, with pull-up
+			DDRB  &= ~(_BV(0)|_BV(1)|_BV(2));
+			DDRD  &= ~(_BV(4));
+			PORTB |=  (_BV(0)|_BV(1)|_BV(2));
+			PORTD |=  (_BV(4));
+			break;
+		case 2: // all four as outputs
+			DDRB  |=  (_BV(0)|_BV(1)|_BV(2));
+			DDRD  |=  (_BV(4));
+			PORTB &= ~(_BV(0)|_BV(1)|_BV(2));
+			PORTD &= ~(_BV(4));
+			break;
+		case 3: // 2 outputs, 2 inputs floating
+			DDRB  &= ~(_BV(0)|_BV(1));
+			DDRB  |=  (_BV(2));
+			DDRD  |=  (_BV(4));
+			PORTB &= ~(_BV(0)|_BV(1)|_BV(2));
+			PORTD &= ~(_BV(4));
+			break;
+		case 4: // 2 outputs, 2 inputs with pull-up
+			DDRB  &= ~(_BV(0)|_BV(1));
+			DDRB  |=  (_BV(2));
+			DDRD  |=  (_BV(4));
+			PORTB |=  (_BV(0)|_BV(1));
+			PORTB &= ~(_BV(2));
+			PORTD &= ~(_BV(4));
+			break;
+		case 5: // 3 outputs, 1 input with pull-up
+			DDRB  |=  (_BV(0)|_BV(1)|_BV(2));
+			DDRD  &= ~(_BV(4));
+			PORTB &= ~(_BV(0)|_BV(1)|_BV(2));
+			PORTD |=  (_BV(4));
+			break;
+		case 6: // 1 output, 3 inputs with pull-up
+			DDRB  &= ~(_BV(0)|_BV(1)|_BV(2));
+			DDRD  |=  (_BV(4));
+			PORTB &= ~(_BV(0)|_BV(1)|_BV(2));
+			PORTD |=  (_BV(4));
+			break;
+		case 7:
+			//TODO: set up Timer1 here. Or maybe below?
+			break;	
+	
+	}
+
+}
+
+static void pwm56_init(void)
+{
+	//TODO: set up pwm56 pins/timer here
+}
 
 void pwm_init()
 {
-	//TODO: control this with a setting, split it out somewhere.
 	pwm12_init();
+	pwm34_init();
+	pwm56_init();
 }
 
 // if value is 0, turn off PWM pin, disable PWM in timer, and turn on brake

@@ -106,7 +106,7 @@ int main(void)
  			}
 		
 			// copy output values from mixOuts to appropriate places...
-			pwm_write(&mixOuts[0]);	
+			pwm_write(&mixOuts[PWM1]);	
 			
 		}
 	}

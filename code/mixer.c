@@ -55,7 +55,7 @@ void apply_mix(MixData *mix)
  *		0x1#-0xB#	unassigned
  *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
  */ 
-uint8_t read_input(enum source inputid)
+uint8_t read_input(enum analog_in inputid)
 {
 	switch (inputid)
 	{
@@ -71,8 +71,10 @@ uint8_t read_input(enum source inputid)
 		     return 0xFF; // TODO: find some way to measure how long it takes to calculate mixes
 		//....
 	
-		default:
-			if(inputid >= 0xC0) return mixOuts[inputid & 0x3F]; 
+		case MIXOUT00 ... MIXOUT3F:
+			return mixOuts[inputid - MIXOUT00];
+			
+		default: 
 			return 0;
 	
 	}

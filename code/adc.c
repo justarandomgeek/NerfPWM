@@ -52,8 +52,16 @@ void adc_init(void)
 	// enable ADC, start first conv (slower than others), clk/128
 	ADCSRA = _BV(ADEN)|_BV(ADSC)|_BV(ADPS2)|_BV(ADPS1)|_BV(ADPS0)|_BV(ADIE);
 	
-	// disable digital inputs on port C[0-3]
-	DIDR0  = 0x0F;
+	
+	
+	// disable digital inputs on enabled ADC channels
+	DIDR0 =  (DIDR0 & 0xf0) |  settings.pinData.ADCDir &  settings.pinData.ADCDat;
+	
+	// enable outputs, if any were selected
+	DDRC  =  (DDRC  & 0xf0) |  settings.pinData.ADCDir & ~settings.pinData.ADCDat;
+	
+	// enable input pull-ups, if any were selected
+	PORTC =  (PORTC & 0xf0) | ~settings.pinData.ADCDir &  settings.pinData.ADCDat;
 }
 
 
