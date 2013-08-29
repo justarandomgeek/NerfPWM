@@ -90,6 +90,7 @@ SRC += pwm.c
 SRC += fuses.c
 SRC += curve.c
 SRC += logic.c
+SRC += settings.c
 
 
 # List C++ source files here. (C dependencies are automatically generated.)

@@ -11,7 +11,7 @@
 #include "adc.h"
 
 // used internal by ADC ISR to keep track of state
-uint8_t adc_state;
+static uint8_t adc_state;
 
 // set by ISR when a channel finishes, shared to app (which may clear it)
 volatile uint8_t adc_new_data;
@@ -55,13 +55,13 @@ void adc_init(void)
 	
 	
 	// disable digital inputs on enabled ADC channels
-	DIDR0 =  (DIDR0 & 0xf0) |  settings.pinData.ADCDir &  settings.pinData.ADCDat;
+	DIDR0 =  (DIDR0 & 0xf0) | ( settings.pinData.ADCDir &  settings.pinData.ADCDat);
 	
 	// enable outputs, if any were selected
-	DDRC  =  (DDRC  & 0xf0) |  settings.pinData.ADCDir & ~settings.pinData.ADCDat;
+	DDRC  =  (DDRC  & 0xf0) | ( settings.pinData.ADCDir & ~settings.pinData.ADCDat);
 	
 	// enable input pull-ups, if any were selected
-	PORTC =  (PORTC & 0xf0) | ~settings.pinData.ADCDir &  settings.pinData.ADCDat;
+	PORTC =  (PORTC & 0xf0) | (~settings.pinData.ADCDir &  settings.pinData.ADCDat);
 }
 
 

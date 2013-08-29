@@ -8,7 +8,6 @@
 /* ========================================================================== */
 
 #include <avr/power.h>
-#include <avr/eeprom.h>
 #include "nerfpwm.h"
 #include "mixer.h"
 #include "adc.h"
@@ -55,36 +54,12 @@ TWI_vect			used for packet net of peripherals
 SPM_REDY_vect		unused
 */
 
-
-
-/*
-defaults: 
-
-PWM1 =  idle (0=brake, or 50ish probably for idle-active.
-PWM1 += ADC0 when [rev button]
-
-PWM2 = brake
-PWM2 = ADC1 when [trigger]
-*/
-
-#define SIMPLEMIX(dest,mlpx,src) {.destCh = (dest),.mltpx=(mlpx),.srcRaw=(src),.weight=0xff,.offset=0,.logic=SW_TRUE,.curve=0}
-
-EEData settings;
-EEMEM EEData ee_settings= {
-	.mixData = {SIMPLEMIX(PWM1,REPLACE,ADC0), SIMPLEMIX(PWM1,ADD,ADC1)},
-	.curves5={},
-	.curves9={},
-	.logicData={}
-};
-
-
-
 int main(void)
 {
 	// in case CLK_DIV_8 is programmed
 	clock_prescale_set(clock_div_1);
 	
-	eeprom_read_block(&settings,&ee_settings,sizeof(settings));
+	settings_init();
 	
 	//init_twi();
 	

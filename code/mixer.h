@@ -1,3 +1,5 @@
+#ifndef MIXER_H
+#define MIXER_H
 /*
  *	outputs: (0-3F)
  *		0x0#	
@@ -13,7 +15,9 @@
 
 uint8_t read_digital(int8_t logicid);
 
-uint8_t read_input(uint8_t inputid);
+uint8_t read_analog(uint8_t inputid);
 
 void apply_mix(MixData *mix);
 uint8_t apply_curve(uint8_t input, int8_t curveid);
+
+#endif

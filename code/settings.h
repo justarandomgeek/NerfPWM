@@ -205,6 +205,9 @@ typedef struct t_EEData {
 } PACKED EEData;
 
 extern uint8_t mixOuts[0x40];
+
 extern EEData settings;
+
+void settings_init(void);
 
 #endif

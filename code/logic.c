@@ -5,8 +5,8 @@
 
 /*	switches: (0-7F)
  *		0x0#
- *			0	TRUE
- *			1	FALSE
+ *			0	FALSE
+ *			1	TRUE
  *			2-3	[reserved]  
  *			4-8	PORTB pins
  *			9-C	PWM34 pins if used as digital inputs
@@ -42,6 +42,11 @@ typedef struct t_LogicData { // Custom Switches data
 0x21		OR
 0x22		XOR
 */
+
+#define analog(v) read_analog(settings.logicData[logicid].v)
+#define digital(v) read_digital(settings.logicData[logicid].v)
+#define constant(v) (uint8_t)(settings.logicData[logicid].v)
+
 __attribute__((noinline)) static uint8_t read_digital_function(int8_t logicid)
 {
 	switch(settings.logicData[logicid].func)
@@ -49,31 +54,31 @@ __attribute__((noinline)) static uint8_t read_digital_function(int8_t logicid)
 		default: return 0;
 		
 		case 0x00:
-			return read_input(settings.logicData[logicid].v1) > (uint8_t)settings.logicData[logicid].v2;
+			return analog(v1) > constant(v2);
 		case 0x01:
-			return read_input(settings.logicData[logicid].v1) < (uint8_t)settings.logicData[logicid].v2;
+			return analog(v1) < constant(v2);
 		case 0x02:
-			return read_input(settings.logicData[logicid].v1) == (uint8_t)settings.logicData[logicid].v2;
+			return analog(v1) == constant(v2);
 		case 0x03:
-			return read_input(settings.logicData[logicid].v1) != (uint8_t)settings.logicData[logicid].v2;
+			return analog(v1) != constant(v2);
 			
 		
 		case 0x10:
-			return read_input(settings.logicData[logicid].v1) > read_input(settings.logicData[logicid].v2);
+			return analog(v1) > analog(v2);
 		case 0x11:
-			return read_input(settings.logicData[logicid].v1) < read_input(settings.logicData[logicid].v2);
+			return analog(v1) < analog(v2);
 		case 0x12:
-			return read_input(settings.logicData[logicid].v1) == read_input(settings.logicData[logicid].v2);
+			return analog(v1) == analog(v2);
 		case 0x13:
-			return read_input(settings.logicData[logicid].v1) != read_input(settings.logicData[logicid].v2);
+			return analog(v1) != analog(v2);
 			
 		case 0x20:
-			return read_digital(settings.logicData[logicid].v1) && read_digital(settings.logicData[logicid].v2);
+			return digital(v1) && digital(v2);
 		case 0x21:
-			return read_digital(settings.logicData[logicid].v1) || read_digital(settings.logicData[logicid].v2);
+			return digital(v1) || digital(v2);
 		case 0x22: // XOR
 			//asm volatile (".global logicxor\nlogicxor:"); // usefull for finding this in .lss to look at...
-			return !(read_digital(settings.logicData[logicid].v1)) != !(read_digital(settings.logicData[logicid].v2));
+			return !(digital(v1)) != !(digital(v2));
 	}
 }
 

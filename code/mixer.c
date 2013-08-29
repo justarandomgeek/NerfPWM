@@ -14,7 +14,7 @@ void apply_mix(MixData *mix)
 	{
 		if(read_digital(mix->logic))
 		{
-			uint8_t mixval = read_input(mix->srcRaw);
+			uint8_t mixval = read_analog(mix->srcRaw);
 			mixval = apply_curve(mixval, mix->curve);
 			mixval = ((int16_t)mixval * ((int16_t)mix->weight+1)) >> 8;
 			mixval += mix->offset;
@@ -55,7 +55,7 @@ void apply_mix(MixData *mix)
  *		0x1#-0xB#	unassigned
  *		0xC#-0xF#	outputs from previous cycle, lower 6 bits = index
  */ 
-uint8_t read_input(enum analog_in inputid)
+uint8_t read_analog(enum analog_in inputid)
 {
 	switch (inputid)
 	{
