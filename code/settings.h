@@ -49,6 +49,7 @@ enum analog_in
 	ADCTEMP,
 	
 	TIME_BUSY = 0x08,
+	CONSTANT0 = 0x09,
 	
 	
 	MIXOUT00 = 0xC0,

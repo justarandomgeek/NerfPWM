@@ -70,6 +70,8 @@ uint8_t read_analog(enum analog_in inputid)
 		case TIME_BUSY:
 		     return 0xFF; // TODO: find some way to measure how long it takes to calculate mixes
 		//....
+		case CONSTANT0:
+			return 0; // adding offest will generate unsigned value 
 	
 		case MIXOUT00 ... MIXOUT3F:
 			return mixOuts[inputid - MIXOUT00];
