@@ -13,7 +13,7 @@ static void pwm12_init(void)
 	OCR0B = 0;
 	
 	// set up appropriate direction bits for the four pins controlled...
-	DDRD |= _BV(1)|_BV(1)|_BV(5)|_BV(6);
+	DDRD |= _BV(0)|_BV(1)|_BV(5)|_BV(6);
 }
 
 static void pwm34_init(void)
@@ -92,17 +92,17 @@ void pwm_init()
 // if value is 0, turn off PWM pin, disable PWM in timer, and turn on brake
 // else, turn off brake, enable PWM, and set OCR to value-1
 #define SET_PWM_OUT(VALUE, BRAKEPORT, BRAKEPIN, PWMPORT, PWMPIN, OCR, TCCR, TCCR_FLAG) \
-if(VALUE) 					\
-{         					\
-	BRAKEPORT &= ~_BV(BRAKEPIN);	\
-	_NOP();					\
-	TCCR |= (TCCR_FLAG);		\
-	OCR = (VALUE)-1;  			\
-} else {                           \
+if((VALUE)==0) 				\
+{       		                    \
 	TCCR &= ~(TCCR_FLAG);		\
 	PWMPORT &= _BV(PWMPIN);		\
 	_NOP();					\
 	BRAKEPORT |= _BV(BRAKEPIN);	\
+} else {      					\
+	BRAKEPORT &= ~_BV(BRAKEPIN);	\
+	_NOP();					\
+	TCCR |= (TCCR_FLAG);		\
+	OCR = (VALUE)-1;  			\
 }
 
 
@@ -114,7 +114,7 @@ static void pwm2_write(uint8_t value){SET_PWM_OUT(value, PORTD, 1, PORTD, 5, OCR
 //static void pwm6_write(uint8_t value){SET_PWM_OUT(value, PORTD, 1, PORTD, 5, OCR0B, TCCR0A, _BV(COM0B1));}
 
 // value=0 sets brake, otherwise OCR=value-1 (set =1 to float, =2 is slowest driven speed. Max speed 0CR=0xFE)
-void pwm_write(uint8_t values[6]){
+void pwm_write(uint8_t *values){
 	pwm1_write(values[0]);
 	pwm2_write(values[1]);
 // 	pwm3_write(values[2]);

@@ -3,6 +3,6 @@
 
 void pwm_init(void);
 
-void pwm_write(uint8_t values[6]);
+void pwm_write(uint8_t *values);
 
 #endif

@@ -41,8 +41,8 @@ my RS:
 	ADC1 = digital trigger
 	ADC2 = digital rev
 	ADC3 = unused
-	ADC6 = front pot
-	ADC7 = rear pot
+	ADC4 = front pot
+	ADC5 = rear pot
 	
 	PWM1 = rev
 	PWM2 = pusher
@@ -59,25 +59,24 @@ static EEMEM EEData ee_settings= {
 		MIX(PWM1,REPLACE,CONSTANT0,0xff,1,SW_TRUE,0),
 		MIX(PWM2,REPLACE,CONSTANT0,0xff,0,SW_TRUE,0),
 		
-		// rev part way when rev trigger pulled
-		MIX(PWM1,REPLACE,ADC6,0xc0,0,SW_ADC2,0),
+		// rev half way when rev pulled but not firing
+		MIX(PWM1,REPLACE,ADC4,0x80,0,-SW_ADC2,0),
 		
-		// rev to full (knob value) when firing, even if rev not pulled
-		MIX(PWM1,REPLACE,ADC6,0xff,0,SW_FUNC0,0),
+		// when firing, even if rev trigger not pulled, rev to about 3/4, and run half RoF
+		MIX(PWM1,REPLACE,ADC4,0xc0,0,SW_FUNC0,0),
+		MIX(PWM2,REPLACE,ADC5,0x80,0,SW_FUNC0,0),
 		
-		// run pusher slow when firing without first pulling rev trigger
-		MIX(PWM2,REPLACE,ADC7,0xc0,0,SW_FUNC0,0),
-		
-		// run pusher at full knob speed if rev and firing both active
-		MIX(PWM2,REPLACE,ADC7,0xff,0,SW_FUNC1,0),
+		// when both triggers pulled, rev and pusher both to full speed (set by knob)
+		MIX(PWM1,REPLACE,ADC4,0xff,0,SW_FUNC1,0),
+		MIX(PWM2,REPLACE,ADC5,0xff,0,SW_FUNC1,0),
 		
 		
 		},
 	.curves5={},
 	.curves9={},
 	.logicData={
-		LOGIC(-SW_ADC0, 0x20, SW_ADC1), // 0x20 = AND, output of this should be used to trigger pusher to activate
-		LOGIC(SW_FUNC0, 0x20, SW_ADC2), // 0x20 = AND, Firing && rev pulled, required for full range/speed
+		LOGIC( SW_ADC0, 0x21, -SW_ADC1), // 0x21 = OR, output of this should be used to trigger pusher to activate
+		LOGIC(SW_FUNC0, 0x20, -SW_ADC2), // 0x20 = AND, Firing && rev pulled, required for full range/speed
 	},
 	.pinData={
 		// input and pull-ups for low four ADC pins (fourth is currently unused)
