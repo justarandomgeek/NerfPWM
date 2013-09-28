@@ -108,8 +108,8 @@
 <text x="10.0838" y="21.4376" size="0.6096" layer="21">GVDC</text>
 <text x="8.822909375" y="4.71086875" size="0.6096" layer="21" rot="R45">&lt;-G46
   V57</text>
-<text x="12.0396" y="22.2504" size="0.6096" layer="21">NerfPWM V1.?
-2013-08-??
+<text x="12.0396" y="22.2504" size="0.6096" layer="21">NerfPWM V1.1
+2013-09-27
 Thomas Deal</text>
 </plain>
 <libraries>
