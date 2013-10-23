@@ -35,6 +35,10 @@ typedef struct t_PinData {
 
 #define LOGIC(in1,function,in2) {.v1=(in1),.v2=(in2),.func=(function)}
 
+
+#define PROFILE STRYFE
+
+#if PROFILE == RAPIDSTRIKE
 /*
 my RS:
 	ADC0 = digital pusher idle (pressed when pusher fully retracted)
@@ -98,6 +102,57 @@ static EEMEM EEData ee_settings= {
 		.BDat=0
 	}
 };
+#elif PROFILE == STRYFE
+/*
+Tanner stryfe:
+	ADC0 = 
+	ADC1 = 
+	ADC2 = digital rev
+	ADC3 = 
+	ADC4 = front pot
+	ADC5 = 
+	
+	PWM1 = rev
+	PWM2 = 
+
+*/
+
+//TODO: curve names?
+
+
+EEData settings;
+static EEMEM EEData ee_settings= {
+	.mixData = {
+		// set up base valuse as floating outputs...
+		MIX(PWM1,REPLACE,CONSTANT0,0xff,1,SW_TRUE,0),
+		
+		// rev to knob setting when rev pulled 
+		MIX(PWM1,REPLACE,ADC4,0xff,0,-SW_ADC0,0),
+		
+		},
+	.curves5={},
+	.curves9={},
+	.logicData={},
+	.pinData={
+		// input and pull-ups for low four ADC pins (fourth is currently unused)
+		.ADCDir=0x0,
+		.ADCDat=0xf,
+		
+		// endable ADC 6 and 7
+		.ADC6Enable=1,
+		.ADC7Enable=1,
+		
+		// disable PWM34 and PWM56 - four HIZ pins each
+		.PWM34Mode=0,
+		.PWM56Mode=0,
+		
+		// four HIZ pins on port B
+		.BDir=0,
+		.BDat=0
+	}
+};
+#endif
+
 
 void settings_init()
 {
