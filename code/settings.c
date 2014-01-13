@@ -37,7 +37,7 @@ typedef struct t_PinData {
 
 /*
 my RS:
-	ADC0 = digital pusher idle
+	ADC0 = digital pusher idle (pressed when pusher fully retracted)
 	ADC1 = digital trigger
 	ADC2 = digital rev
 	ADC3 = unused
@@ -75,8 +75,10 @@ static EEMEM EEData ee_settings= {
 	.curves5={},
 	.curves9={},
 	.logicData={
-		LOGIC( SW_ADC0, 0x21, -SW_ADC1), // 0x21 = OR, output of this should be used to trigger pusher to activate
-		LOGIC(SW_FUNC0, 0x20, -SW_ADC2), // 0x20 = AND, Firing && rev pulled, required for full range/speed
+		LOGIC( SW_ADC0, 0x21, -SW_ADC1), 	// 0x21 = OR, output of this should be used to trigger pusher to activate
+									// Firing: pusher not retracted or trigger pulled
+		LOGIC(SW_FUNC0, 0x20, -SW_ADC2), 	// 0x20 = AND, Firing && rev pulled, required for full range/speed
+									// full: firing and reved 
 	},
 	.pinData={
 		// input and pull-ups for low four ADC pins (fourth is currently unused)
