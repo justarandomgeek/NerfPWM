@@ -54,6 +54,8 @@ TWI_vect			used for packet net of peripherals
 SPM_REDY_vect		unused
 */
 
+#include <util/delay.h>
+
 int main(void)
 {
 	// in case CLK_DIV_8 is programmed
@@ -82,8 +84,10 @@ int main(void)
 		
 			// copy output values from mixOuts to appropriate places...
 			pwm_write(&mixOuts[PWM1]);	
-			
+		
+			_delay_ms(10);	
 		}
+		
 	}
 }
 

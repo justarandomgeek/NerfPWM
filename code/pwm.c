@@ -95,7 +95,7 @@ void pwm_init()
 if((VALUE)==0) 				\
 {       		                    \
 	TCCR &= ~(TCCR_FLAG);		\
-	PWMPORT &= _BV(PWMPIN);		\
+	PWMPORT &= ~_BV(PWMPIN);		\
 	_NOP();					\
 	BRAKEPORT |= _BV(BRAKEPIN);	\
 } else {      					\
