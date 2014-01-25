@@ -35,6 +35,8 @@ typedef struct t_PinData {
 
 #define LOGIC(in1,function,in2) {.v1=(in1),.v2=(in2),.func=(function)}
 
+#define RAPIDSTRIKE 1
+#define STRYFE      2
 
 #define PROFILE STRYFE
 
@@ -105,15 +107,17 @@ static EEMEM EEData ee_settings= {
 #elif PROFILE == STRYFE
 /*
 Tanner stryfe:
-	ADC0 = 
-	ADC1 = 
-	ADC2 = digital rev
+	ADC0 = rev pot
+	ADC1 = rev mode switch (high = push to rev, low = push to toggle)
+	ADC2 = ~rev trigger
 	ADC3 = 
-	ADC4 = front pot
-	ADC5 = 
+	ADC6 = 
+	ADC7 = 
 	
-	PWM1 = rev
+	PWM1 = flywheels 
 	PWM2 = 
+
+	rev to ADC0 when mode=ptr&trigger || mode=ptt&trigger/2
 
 */
 
@@ -124,19 +128,55 @@ EEData settings;
 static EEMEM EEData ee_settings= {
 	.mixData = {
 		// set up base valuse as floating outputs...
-		MIX(PWM1,REPLACE,CONSTANT0,0xff,1,SW_TRUE,0),
+		MIX(PWM1,REPLACE,CONSTANT0,0,1,SW_TRUE,0),
+		MIX(PWM2,REPLACE,CONSTANT0,0,1,SW_TRUE,0),
+				
+		// rev to knob setting when active 
+		MIX(PWM1,REPLACE,ADC0,0xff,0,SW_FUNC6,0),
+			
+		// MIXOUT11 = push-to-toggle state
+		// set 0xff on rising edge of first trigger pull, set 0 on falling edge of second
+		// reset to 0 when switch taken out of toggle mode
+		MIX(0x11,REPLACE,CONSTANT0,0x00,0x00,SW_FUNC8,0),
+		MIX(0x11,REPLACE,CONSTANT0,0x00,0xff,SW_FUNC7,0),
+		MIX(0x11,REPLACE,CONSTANT0,0x00,0x00, SW_ADC1,0),
 		
-		// rev to knob setting when rev pulled 
-		MIX(PWM1,REPLACE,ADC4,0xff,0,-SW_ADC0,0),
+		// MIXOUT12 = MIXOUT11 at previous release
+		MIX(0x12,REPLACE,MIXOUT11 ,0xff,0x00,SW_FUNC3,0),
 		
+		//TODO: add some enum values for scratch vars
+		// MIXOUT10 = previous value of rev trigger, for edge detection.
+		MIX(0x10,REPLACE,CONSTANT0,0x00,0xff,-SW_ADC2,0),
+		MIX(0x10,REPLACE,CONSTANT0,0x00,0x00, SW_ADC2,0),
+			
 		},
 	.curves5={},
 	.curves9={},
-	.logicData={},
+	.logicData={
+		LOGIC( -SW_ADC2, 0x20, SW_ADC1),	//  FUNC0 = rev trigger && mode = push-to-rev
+		
+		LOGIC( MIXOUT10, 0x02, 0xff),	 	//  FUNC1 = prev rev trigger (MIXOUT10 == 0xff)
+		
+		LOGIC( -SW_ADC2, 0x20,-SW_FUNC1), 	//  FUNC2 = rev trigger && not prev rev trigger (not->pulled transition)
+		LOGIC(  SW_ADC2, 0x20, SW_FUNC1), 	//  FUNC3 = not rev trigger && prev rev trigger (pulled->not transition)
+		
+		LOGIC( MIXOUT11, 0x02, 0xff),	 	//  FUNC4 = rev toggle state (MIXOUT11 == 0xff)
+		
+		LOGIC( SW_FUNC4, 0x20, -SW_ADC1),	//  FUNC5 = rev toggle state && mode = push-to-toggle
+		
+		LOGIC( SW_FUNC5, 0x21, SW_FUNC0),	//  FUNC6 = FUNC5 || FUNC0 == should rev
+		
+		LOGIC( SW_FUNC2, 0x20,-SW_FUNC4),	//  FUNC7 = FUNC2 && -FUNC4, rising edge while inactive
+		LOGIC( SW_FUNC3, 0x20, SW_FUNC9),	//  FUNC8 = FUNC3 &&  FUNC4, falling edge while toggle was active at prev fall edge
+		LOGIC( MIXOUT12, 0x02, 0xff),	 	//  FUNC9 = rev toggle state at previous falling edge
+		
+	
+	},
 	.pinData={
-		// input and pull-ups for low four ADC pins (fourth is currently unused)
-		.ADCDir=0x0,
-		.ADCDat=0xf,
+		// input and pull-ups for low four ADC pins
+		// all four inputs, pull ups on 1,2. 0 is analog, 3 is unused
+		.ADCDir=0x1,
+		.ADCDat=0x7,
 		
 		// endable ADC 6 and 7
 		.ADC6Enable=1,
