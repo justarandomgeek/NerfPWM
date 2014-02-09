@@ -62,29 +62,29 @@ EEData settings;
 static EEMEM EEData ee_settings= {
 	.mixData = {
 		// set up base valuse as floating outputs...
-		MIX(PWM1,REPLACE,CONSTANT0,0xff,1,SW_TRUE,0),
-		MIX(PWM2,REPLACE,CONSTANT0,0xff,0,SW_TRUE,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_CONSTANT0,0xff,1,SW_TRUE,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0xff,0,SW_TRUE,0),
 		
 		// rev half way when rev pulled but not firing
-		MIX(PWM1,REPLACE,ADC4,0x80,0,-SW_ADC2,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0x80,0,-SW_ADC2,0),
 		
 		// when firing, even if rev trigger not pulled, rev to about 3/4, and run half RoF
-		MIX(PWM1,REPLACE,ADC4,0xc0,0,SW_FUNC0,0),
-		MIX(PWM2,REPLACE,ADC5,0x80,0,SW_FUNC0,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xc0,0,SW_FUNC0,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0x80,0,SW_FUNC0,0),
 		
 		// when both triggers pulled, rev and pusher both to full speed (set by knob)
-		MIX(PWM1,REPLACE,ADC4,0xff,0,SW_FUNC1,0),
-		MIX(PWM2,REPLACE,ADC5,0xff,0,SW_FUNC1,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xff,0,SW_FUNC1,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0xff,0,SW_FUNC1,0),
 		
 		
 		},
 	.curves5={},
 	.curves9={},
 	.logicData={
-		LOGIC( SW_ADC0, 0x21, -SW_ADC1), 	// 0x21 = OR, output of this should be used to trigger pusher to activate
-									// Firing: pusher not retracted or trigger pulled
-		LOGIC(SW_FUNC0, 0x20, -SW_ADC2), 	// 0x20 = AND, Firing && rev pulled, required for full range/speed
-									// full: firing and reved 
+		LOGIC( SW_ADC0, OP_DD_OR, -SW_ADC1), 	// 0x21 = OR, output of this should be used to trigger pusher to activate
+										// Firing: pusher not retracted or trigger pulled
+		LOGIC(SW_FUNC0, OP_DD_AND, -SW_ADC2), 	// 0x20 = AND, Firing && rev pulled, required for full range/speed
+										// full: firing and reved 
 	},
 	.pinData={
 		// input and pull-ups for low four ADC pins (fourth is currently unused)
@@ -128,47 +128,47 @@ EEData settings;
 static EEMEM EEData ee_settings= {
 	.mixData = {
 		// set up base valuse as floating outputs...
-		MIX(PWM1,REPLACE,CONSTANT0,0,1,SW_TRUE,0),
-		MIX(PWM2,REPLACE,CONSTANT0,0,1,SW_TRUE,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_CONSTANT0,0,1,SW_TRUE,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0,1,SW_TRUE,0),
 				
 		// rev to knob setting when active 
-		MIX(PWM1,REPLACE,ADC0,0xff,0,SW_FUNC6,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC0,0xff,0,SW_FUNC6,0),
 			
 		// MIXOUT11 = push-to-toggle state
 		// set 0xff on rising edge of first trigger pull, set 0 on falling edge of second
 		// reset to 0 when switch taken out of toggle mode
-		MIX(0x11,REPLACE,CONSTANT0,0x00,0x00,SW_FUNC8,0),
-		MIX(0x11,REPLACE,CONSTANT0,0x00,0xff,SW_FUNC7,0),
-		MIX(0x11,REPLACE,CONSTANT0,0x00,0x00, SW_ADC1,0),
+		MIX(0x11,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_FUNC8,0),
+		MIX(0x11,MP_REPLACE,IN_CONSTANT0,0x00,0xff,SW_FUNC7,0),
+		MIX(0x11,MP_REPLACE,IN_CONSTANT0,0x00,0x00, SW_ADC1,0),
 		
 		// MIXOUT12 = MIXOUT11 at previous release
-		MIX(0x12,REPLACE,MIXOUT11 ,0xff,0x00,SW_FUNC3,0),
+		MIX(0x12,MP_REPLACE,IN_MIXOUT(0x11) ,0xff,0x00,SW_FUNC3,0),
 		
 		//TODO: add some enum values for scratch vars
 		// MIXOUT10 = previous value of rev trigger, for edge detection.
-		MIX(0x10,REPLACE,CONSTANT0,0x00,0xff,-SW_ADC2,0),
-		MIX(0x10,REPLACE,CONSTANT0,0x00,0x00, SW_ADC2,0),
+		MIX(0x10,MP_REPLACE,IN_CONSTANT0,0x00,0xff,-SW_ADC2,0),
+		MIX(0x10,MP_REPLACE,IN_CONSTANT0,0x00,0x00, SW_ADC2,0),
 			
 		},
 	.curves5={},
 	.curves9={},
 	.logicData={
-		LOGIC( -SW_ADC2, 0x20, SW_ADC1),	//  FUNC0 = rev trigger && mode = push-to-rev
+		LOGIC( -SW_ADC2,		OP_DD_AND,	SW_ADC1),		//  FUNC0 = rev trigger && mode = push-to-rev
 		
-		LOGIC( MIXOUT10, 0x02, 0xff),	 	//  FUNC1 = prev rev trigger (MIXOUT10 == 0xff)
+		LOGIC( IN_MIXOUT(0x10),	OP_AC_EQ,		0xff),	 	//  FUNC1 = prev rev trigger (MIXOUT10 == 0xff)
 		
-		LOGIC( -SW_ADC2, 0x20,-SW_FUNC1), 	//  FUNC2 = rev trigger && not prev rev trigger (not->pulled transition)
-		LOGIC(  SW_ADC2, 0x20, SW_FUNC1), 	//  FUNC3 = not rev trigger && prev rev trigger (pulled->not transition)
+		LOGIC( -SW_ADC2,		OP_DD_AND,	-SW_FUNC1), 	//  FUNC2 = rev trigger && not prev rev trigger (not->pulled transition)
+		LOGIC(  SW_ADC2,		OP_DD_AND,	SW_FUNC1), 	//  FUNC3 = not rev trigger && prev rev trigger (pulled->not transition)
 		
-		LOGIC( MIXOUT11, 0x02, 0xff),	 	//  FUNC4 = rev toggle state (MIXOUT11 == 0xff)
+		LOGIC( IN_MIXOUT(0x11),	OP_AC_EQ,		0xff),	 	//  FUNC4 = rev toggle state (MIXOUT11 == 0xff)
 		
-		LOGIC( SW_FUNC4, 0x20, -SW_ADC1),	//  FUNC5 = rev toggle state && mode = push-to-toggle
+		LOGIC( SW_FUNC4,		OP_DD_AND,	-SW_ADC1),	//  FUNC5 = rev toggle state && mode = push-to-toggle
 		
-		LOGIC( SW_FUNC5, 0x21, SW_FUNC0),	//  FUNC6 = FUNC5 || FUNC0 == should rev
+		LOGIC( SW_FUNC5,		OP_DD_OR,		SW_FUNC0),	//  FUNC6 = FUNC5 || FUNC0 == should rev
 		
-		LOGIC( SW_FUNC2, 0x20,-SW_FUNC4),	//  FUNC7 = FUNC2 && -FUNC4, rising edge while inactive
-		LOGIC( SW_FUNC3, 0x20, SW_FUNC9),	//  FUNC8 = FUNC3 &&  FUNC4, falling edge while toggle was active at prev fall edge
-		LOGIC( MIXOUT12, 0x02, 0xff),	 	//  FUNC9 = rev toggle state at previous falling edge
+		LOGIC( SW_FUNC2,		OP_DD_AND,	-SW_FUNC4),	//  FUNC7 = FUNC2 && -FUNC4, rising edge while inactive
+		LOGIC( SW_FUNC3,		OP_DD_AND,	SW_FUNC9),	//  FUNC8 = FUNC3 &&  FUNC4, falling edge while toggle was active at prev fall edge
+		LOGIC( IN_MIXOUT(0x12),	OP_AC_EQ,		0xff),	 	//  FUNC9 = rev toggle state at previous falling edge
 		
 	
 	},

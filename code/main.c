@@ -83,7 +83,7 @@ int main(void)
  			}
 		
 			// copy output values from mixOuts to appropriate places...
-			pwm_write(&mixOuts[PWM1]);	
+			pwm_write(&mixOuts[OUT_PWM1]);	
 		
 			_delay_ms(10);	
 		}

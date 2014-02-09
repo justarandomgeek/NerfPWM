@@ -21,17 +21,17 @@ void apply_mix(MixData *mix)
 			
 			switch ((uint8_t)mix->mltpx)
 			{
-				case ADD:
+				case MP_ADD:
 					mixOuts[mix->destCh] += mixval;
 					break;
-				case MULTIPLY:
+				case MP_MULTIPLY:
 					mixOuts[mix->destCh] *= mixval;
 					break;
-				case REPLACE:
+				case MP_REPLACE:
 					mixOuts[mix->destCh]  = mixval;
 					break;
 				default:
-				case UNUSED:
+				case MP_UNUSED:
 					break;
 				
 			
@@ -59,22 +59,18 @@ uint8_t read_analog(enum analog_in inputid)
 {
 	switch (inputid)
 	{
-		case ADC0:
-		case ADC1:
-		case ADC2:
-		case ADC3:
-		case ADC4:
-		case ADC5:
+		case IN_ADC0 ... IN_ADC5:
+		case IN_ADCTEMP:
 			return adc_val[inputid];
 		
-		case TIME_BUSY:
+		case IN_TIME_BUSY:
 		     return 0xFF; // TODO: find some way to measure how long it takes to calculate mixes
 		//....
-		case CONSTANT0:
+		case IN_CONSTANT0:
 			return 0; // adding offest will generate unsigned value 
 	
-		case MIXOUT00 ... MIXOUT3F:
-			return mixOuts[inputid - MIXOUT00];
+		case IN_MIXOUT(0) ... IN_MIXOUT(0x3F):
+			return mixOuts[inputid - IN_MIXOUT(0)];
 			
 		default: 
 			return 0;

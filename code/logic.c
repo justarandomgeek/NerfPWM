@@ -53,31 +53,30 @@ __attribute__((noinline)) static uint8_t read_digital_function(int8_t logicid)
 	{
 		default: return 0;
 		
-		case 0x00:
+		case OP_AC_GT:
 			return analog(v1) > constant(v2);
-		case 0x01:
+		case OP_AC_LT:
 			return analog(v1) < constant(v2);
-		case 0x02:
+		case OP_AC_EQ:
 			return analog(v1) == constant(v2);
-		case 0x03:
+		case OP_AC_NEQ:
 			return analog(v1) != constant(v2);
 			
 		
-		case 0x10:
+		case OP_AA_GT:
 			return analog(v1) > analog(v2);
-		case 0x11:
+		case OP_AA_LT:
 			return analog(v1) < analog(v2);
-		case 0x12:
+		case OP_AA_EQ:
 			return analog(v1) == analog(v2);
-		case 0x13:
+		case OP_AA_NEQ:
 			return analog(v1) != analog(v2);
 			
-		case 0x20:
+		case OP_DD_AND:
 			return digital(v1) && digital(v2);
-		case 0x21:
+		case OP_DD_OR:
 			return digital(v1) || digital(v2);
-		case 0x22: // XOR
-			//asm volatile (".global logicxor\nlogicxor:"); // usefull for finding this in .lss to look at...
+		case OP_DD_XOR:
 			return !(digital(v1)) != !(digital(v2));
 	}
 }
@@ -89,37 +88,37 @@ uint8_t read_digital(int8_t logicid)
 	
 	switch (logicid)
 	{
-		case 0x00:	// FALSE
+		case SW_FALSE:
 			return 0;
-		case 0x01:		// TRUE
+		case SW_TRUE:
 			return 0xFF;
 			
-		case 0x04 ... 0x07:	// Port B pins broken out to special header
+		case SW_B4 ... SW_B7:	// Port B pins broken out to special header
 			return PINB & _BV(logicid);
 			
-		case 0x08:	// PWM3
+		case SW_PWM3:
 			return PINB & _BV(1);
-		case 0x09:	// BRAKE3
+		case SW_BRAKE3:
 			return PINB & _BV(0);
-		case 0x0A:	// PWM4
+		case SW_PWM4:
 			return PINB & _BV(2);
-		case 0x0B:	// BRAKE4
+		case SW_BRAKE4:
 			return PIND & _BV(4);
 		
-		case 0x0C:	// PWM5
+		case SW_PWM5:
 			return PINB & _BV(3);
-		case 0x0D:	// BRAKE5
+		case SW_BRAKE5:
 			return PIND & _BV(7);
-		case 0x0E:	// PWM6
+		case SW_PWM6:
 			return PIND & _BV(3);
-		case 0x0F:	// BRAKE6
+		case SW_BRAKE6:
 			return PIND & _BV(2);
 		
 	
-		case 0x10 ... 0x1F:	// Logic functions
+		case SW_FUNC0 ... SW_FUNCF:	// Logic functions
 			return read_digital_function(logicid - 0x10);	
 		
-		case 0x20 ... 0x27:	// Analog pins as digital
+		case SW_ADC0 ... SW_ADC5:	// Analog pins as digital.
 			return PINC & _BV(logicid & 0x7);
 		//....
 	
