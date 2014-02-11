@@ -4,7 +4,7 @@
 #include "adc.h"
 
 
-uint8_t mixOuts[0x40];
+uint8_t mixOuts[NUM_MIXOUTS];
 
 
 
@@ -44,7 +44,6 @@ void apply_mix(MixData *mix)
 
 
 
-
 /*	inputs: (0-FF)
  *		0x0#
  *			0-5	ADC 0-5 
@@ -69,7 +68,7 @@ uint8_t read_analog(enum analog_in inputid)
 		case IN_CONSTANT0:
 			return 0; // adding offest will generate unsigned value 
 	
-		case IN_MIXOUT(0) ... IN_MIXOUT(0x3F):
+		case IN_MIXOUT(0) ... IN_MIXOUT(NUM_MIXOUTS-1):
 			return mixOuts[inputid - IN_MIXOUT(0)];
 			
 		default: 

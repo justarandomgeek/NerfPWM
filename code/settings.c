@@ -102,7 +102,8 @@ static EEMEM EEData ee_settings= {
 		// four HIZ pins on port B
 		.BDir=0,
 		.BDat=0
-	}
+	},
+	.edgeData={},
 };
 #elif PROFILE == STRYFE
 /*
@@ -134,41 +135,40 @@ static EEMEM EEData ee_settings= {
 		// rev to knob setting when active 
 		MIX(OUT_PWM1,MP_REPLACE,IN_ADC0,0xff,0,SW_FUNC6,0),
 			
-		// MIXOUT11 = push-to-toggle state
+		// OUT_VAR1 = push-to-toggle state
 		// set 0xff on rising edge of first trigger pull, set 0 on falling edge of second
 		// reset to 0 when switch taken out of toggle mode
-		MIX(0x11,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_FUNC8,0),
-		MIX(0x11,MP_REPLACE,IN_CONSTANT0,0x00,0xff,SW_FUNC7,0),
-		MIX(0x11,MP_REPLACE,IN_CONSTANT0,0x00,0x00, SW_ADC1,0),
+		MIX(OUT_VAR1,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_FUNC8,0),
+		MIX(OUT_VAR1,MP_REPLACE,IN_CONSTANT0,0x00,0xff,SW_FUNC7,0),
+		MIX(OUT_VAR1,MP_REPLACE,IN_CONSTANT0,0x00,0x00, SW_ADC1,0),
 		
-		// MIXOUT12 = MIXOUT11 at previous release
-		MIX(0x12,MP_REPLACE,IN_MIXOUT(0x11) ,0xff,0x00,SW_FUNC3,0),
+		// OUT_VAR2 = MIXOUT11 at previous release
+		MIX(OUT_VAR2,MP_REPLACE,IN_MIXOUT(OUT_VAR1) ,0xff,0x00,SW_FUNC3,0),
 		
-		//TODO: add some enum values for scratch vars
-		// MIXOUT10 = previous value of rev trigger, for edge detection.
-		MIX(0x10,MP_REPLACE,IN_CONSTANT0,0x00,0xff,-SW_ADC2,0),
-		MIX(0x10,MP_REPLACE,IN_CONSTANT0,0x00,0x00, SW_ADC2,0),
+		// OUT_VAR0 = previous value of rev trigger, for edge detection.
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0xff,-SW_ADC2,0),
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0x00, SW_ADC2,0),
 			
 		},
 	.curves5={},
 	.curves9={},
 	.logicData={
-		LOGIC( -SW_ADC2,		OP_DD_AND,	SW_ADC1),		//  FUNC0 = rev trigger && mode = push-to-rev
+		LOGIC( -SW_ADC2,			OP_DD_AND,	SW_ADC1),		//  FUNC0 = rev trigger && mode = push-to-rev
 		
-		LOGIC( IN_MIXOUT(0x10),	OP_AC_EQ,		0xff),	 	//  FUNC1 = prev rev trigger (MIXOUT10 == 0xff)
+		LOGIC( IN_MIXOUT(OUT_VAR0),	OP_AC_EQ,		0xff),	 	//  FUNC1 = prev rev trigger (MIXOUT10 == 0xff)
 		
-		LOGIC( -SW_ADC2,		OP_DD_AND,	-SW_FUNC1), 	//  FUNC2 = rev trigger && not prev rev trigger (not->pulled transition)
-		LOGIC(  SW_ADC2,		OP_DD_AND,	SW_FUNC1), 	//  FUNC3 = not rev trigger && prev rev trigger (pulled->not transition)
+		LOGIC( -SW_ADC2,			OP_DD_AND,	-SW_FUNC1), 	//  FUNC2 = rev trigger && not prev rev trigger (not->pulled transition)
+		LOGIC(  SW_ADC2,			OP_DD_AND,	SW_FUNC1), 	//  FUNC3 = not rev trigger && prev rev trigger (pulled->not transition)
 		
-		LOGIC( IN_MIXOUT(0x11),	OP_AC_EQ,		0xff),	 	//  FUNC4 = rev toggle state (MIXOUT11 == 0xff)
+		LOGIC( IN_MIXOUT(OUT_VAR1),	OP_AC_EQ,		0xff),	 	//  FUNC4 = rev toggle state (MIXOUT11 == 0xff)
 		
-		LOGIC( SW_FUNC4,		OP_DD_AND,	-SW_ADC1),	//  FUNC5 = rev toggle state && mode = push-to-toggle
+		LOGIC( SW_FUNC4,			OP_DD_AND,	-SW_ADC1),	//  FUNC5 = rev toggle state && mode = push-to-toggle
 		
-		LOGIC( SW_FUNC5,		OP_DD_OR,		SW_FUNC0),	//  FUNC6 = FUNC5 || FUNC0 == should rev
+		LOGIC( SW_FUNC5,			OP_DD_OR,		SW_FUNC0),	//  FUNC6 = FUNC5 || FUNC0 == should rev
 		
-		LOGIC( SW_FUNC2,		OP_DD_AND,	-SW_FUNC4),	//  FUNC7 = FUNC2 && -FUNC4, rising edge while inactive
-		LOGIC( SW_FUNC3,		OP_DD_AND,	SW_FUNC9),	//  FUNC8 = FUNC3 &&  FUNC4, falling edge while toggle was active at prev fall edge
-		LOGIC( IN_MIXOUT(0x12),	OP_AC_EQ,		0xff),	 	//  FUNC9 = rev toggle state at previous falling edge
+		LOGIC( SW_FUNC2,			OP_DD_AND,	-SW_FUNC4),	//  FUNC7 = FUNC2 && -FUNC4, rising edge while inactive
+		LOGIC( SW_FUNC3,			OP_DD_AND,	SW_FUNC9),	//  FUNC8 = FUNC3 &&  FUNC4, falling edge while toggle was active at prev fall edge
+		LOGIC( IN_MIXOUT(OUT_VAR2),	OP_AC_EQ,		0xff),	 	//  FUNC9 = rev toggle state at previous falling edge
 		
 	
 	},
@@ -189,7 +189,8 @@ static EEMEM EEData ee_settings= {
 		// four HIZ pins on port B
 		.BDir=0,
 		.BDat=0
-	}
+	},
+	.edgeData={},
 };
 #endif
 

@@ -77,14 +77,15 @@ int main(void)
 		{
 			adc_new_data=0;
 			
-			for(int i=0;i<MAX_MIXERS;i++)
-			{
- 				apply_mix(&settings.mixData[i]);
- 			}
+			// calculate new mix values.
+			for(int i=0;i<MAX_MIXERS;i++) apply_mix(&settings.mixData[i]);
 		
 			// copy output values from mixOuts to appropriate places...
 			pwm_write(&mixOuts[OUT_PWM1]);	
-		
+			
+			// update previous values for edge detectors
+			for(int i=0;i<MAX_EDGES;i++) edgePrev[i] = read_digital(settings.edgeData[i]);
+ 								
 			_delay_ms(10);	
 		}
 		

@@ -3,10 +3,13 @@
 
 #define PACKED __attribute__((__packed__))
 
+// These are the number of 'rules' of each type can be included in settings, using
+// EEPROM and RAM.
 #define MAX_MIXERS	32
 #define MAX_CURVE5	8
 #define MAX_CURVE9	8
 #define MAX_LOGIC	16
+#define MAX_EDGES	16
 
 enum analog_out
 {
@@ -16,7 +19,20 @@ enum analog_out
 	OUT_PWM4,
 	OUT_PWM5,
 	OUT_PWM6,
+	
+	OUT_VAR0,
+	OUT_VAR1,
+	OUT_VAR2,
+	OUT_VAR3,
+	OUT_VAR4,
+	OUT_VAR5,
+	OUT_VAR6,
+	OUT_VAR7,
+	
 
+	// This should not be used as an actual mix-out. It is used to ensure that
+	// exactly enough RAM is allocated for keeping track of mix results.
+	NUM_MIXOUTS
 };
 
 enum multiplex
@@ -49,21 +65,20 @@ enum analog_in
 	IN_ADCTEMP,
 	
 	IN_TIME_BUSY = 0x08,
-	IN_CONSTANT0 = 0x09,
+	IN_CONSTANT0 = 0x09,	
 	
-	
-	IN_MIXOUTS = 0xC0,
-	IN_MIXOUT3F = 0xC0 + 0x3F,
+	IN_FIRSTMIXOUT = 0xC0,
+	IN_LASTMIXOUT = IN_FIRSTMIXOUT + (NUM_MIXOUTS-1),
 };
 
-#define IN_MIXOUT(n) (IN_MIXOUTS + (n))
+#define IN_MIXOUT(n) (IN_FIRSTMIXOUT + (n))
 
 
 enum logic {
 	SW_FALSE=0,
 	SW_TRUE,
 	
-	SW_B4 = 4,
+	SW_B4=4,
 	SW_B5,
 	SW_B6,
 	SW_B7,
@@ -101,6 +116,23 @@ enum logic {
 	SW_ADC3,
 	SW_ADC4,
 	SW_ADC5,
+	
+	SW_EDGE0,
+	SW_EDGE1,
+	SW_EDGE2,
+	SW_EDGE3,
+	SW_EDGE4,
+	SW_EDGE5,
+	SW_EDGE6,
+	SW_EDGE7,
+	SW_EDGE8,
+	SW_EDGE9,
+	SW_EDGEA,
+	SW_EDGEB,
+	SW_EDGEC,
+	SW_EDGED,
+	SW_EDGEE,
+	SW_EDGEF,
 };
 
 enum logic_op {
@@ -154,16 +186,17 @@ typedef struct t_PinData {
 
 } PACKED PinData;
 
-
 typedef struct t_EEData {
 	MixData		mixData[MAX_MIXERS];
 	uint8_t		curves5[MAX_CURVE5][5];
 	uint8_t		curves9[MAX_CURVE9][9];
 	LogicData		logicData[MAX_LOGIC];
 	PinData		pinData;
+	int8_t		edgeData[MAX_EDGES];
 } PACKED EEData;
 
-extern uint8_t mixOuts[0x40];
+extern uint8_t mixOuts[NUM_MIXOUTS];
+extern uint8_t edgePrev[MAX_EDGES];
 
 extern EEData settings;
 

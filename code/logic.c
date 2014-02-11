@@ -2,46 +2,7 @@
 #include <stdint.h>
 #include "mixer.h"
 
-
-/*	switches: (0-7F)
- *		0x0#
- *			0	FALSE
- *			1	TRUE
- *			2-3	[reserved]  
- *			4-8	PORTB pins
- *			9-C	PWM34 pins if used as digital inputs
- *			D-F	PWM56 pins if used as digital inputs 
- *			
- *		0x1#		logic functions
- */ 
-
-
-
-/*
-typedef struct t_LogicData { // Custom Switches data
-	int8_t  v1;			// input 1 -  index to switch or analog (determined by func)
-	int8_t  v2;			// input 2 -  const, or index to switch or analog (determined by func)
-	uint8_t func;			// enum of functions. comparison of analog, logic of switch
-} PACKED LogicData;
-
-
-0x0?		[v1 = analog, v2 = const]
-0x00		v1 > const
-0x01		v1 < const
-0x02		v1 == const
-0x03		v1 != const
-	
-0x1?		[v1,v2 = analog]
-0x10		v1 > v2
-0x11		v1 < v2
-0x12		v1 == v2
-0x13		v1 != v2
-		
-0x2?		[v1,v2 = logic]
-0x20		AND
-0x21		OR
-0x22		XOR
-*/
+uint8_t edgePrev[MAX_EDGES];
 
 #define analog(v) read_analog(settings.logicData[logicid].v)
 #define digital(v) read_digital(settings.logicData[logicid].v)
@@ -94,7 +55,7 @@ uint8_t read_digital(int8_t logicid)
 			return 0xFF;
 			
 		case SW_B4 ... SW_B7:	// Port B pins broken out to special header
-			return PINB & _BV(logicid);
+			return PINB & _BV(logicid - SW_B4 + 4);
 			
 		case SW_PWM3:
 			return PINB & _BV(1);
@@ -116,10 +77,14 @@ uint8_t read_digital(int8_t logicid)
 		
 	
 		case SW_FUNC0 ... SW_FUNCF:	// Logic functions
-			return read_digital_function(logicid - 0x10);	
+			return read_digital_function(logicid - SW_FUNC0);	
 		
 		case SW_ADC0 ... SW_ADC5:	// Analog pins as digital.
-			return PINC & _BV(logicid & 0x7);
+			return PINC & _BV(logicid - SW_ADC0);
+			
+		case SW_EDGE0 ... SW_EDGE7:	// Rising edges, current value = high, prev = low 
+			return read_digital(settings.edgeData[logicid-SW_EDGE0]) && !edgePrev[logicid-SW_EDGE0];
+			
 		//....
 	
 		default: return 0;
