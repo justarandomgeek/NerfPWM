@@ -35,10 +35,11 @@ typedef struct t_PinData {
 
 #define LOGIC(in1,function,in2) {.v1=(in1),.v2=(in2),.func=(function)}
 
-#define RAPIDSTRIKE 1
-#define STRYFE      2
+#define RAPIDSTRIKE		1
+#define STRYFE			2
+#define RAPIDSTRIKE2	3
 
-#define PROFILE STRYFE
+#define PROFILE RAPIDSTRIKE
 
 #if PROFILE == RAPIDSTRIKE
 /*
@@ -104,6 +105,93 @@ static EEMEM EEData ee_settings= {
 		.BDat=0
 	},
 	.edgeData={},
+};
+#elif PROFILE == RAPIDSTRIKE2
+/*
+my RS:
+	ADC0 = digital pusher idle (pressed when pusher fully retracted)
+	ADC1 = digital trigger
+	ADC2 = digital rev
+	ADC3 = mode switch / 3way. top = 0v, mid = 2.5v, bot = 5v
+	ADC4 = front pot
+	ADC5 = rear pot
+	
+	PWM1 = rev
+	PWM2 = pusher
+
+*/
+
+//TODO: curve names?
+
+
+EEData settings;
+static EEMEM EEData ee_settings= {
+	.mixData = {
+		// set up base valuse as floating outputs...
+		MIX(OUT_PWM1,MP_REPLACE,IN_CONSTANT0,0xff,1,SW_TRUE,0),
+		//MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0xff,0,SW_TRUE,0),
+		
+		// rev half way when rev pulled but not firing
+		//MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0x80,0,-SW_ADC2,0),
+		
+		// when firing, even if rev trigger not pulled, rev to about 3/4, and run half RoF
+		//MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xc0,0,SW_FUNC0,0),
+		//MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0x80,0,SW_FUNC0,0),
+		
+		// when both triggers pulled, rev and pusher both to full speed (set by knob)
+		//MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xff,0,SW_FUNC1,0),
+		//MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0xff,0,SW_FUNC1,0),
+		
+		
+		// single:
+		// start pusher at ADC level when trigger pulled 
+		//MIX(OUT_PWM2,MP_REPLACE,IN_ADC5     ,0x90,0,SW_EDGE0,0),
+		// brake pusher when fully retracted
+		//MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0x00,0,SW_EDGE1,0),
+		
+		// burst of 3:
+		// start pusher at ADC level when trigger pulled 
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0,SW_EDGE0,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5     ,0x90,0,SW_EDGE0,0),
+		// brake pusher when fully retracted
+		MIX(OUT_VAR0,MP_ADD    ,IN_CONSTANT0,0x00,1,SW_EDGE1,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0x00,0,SW_FUNC3,0),
+		
+		
+		
+		},
+	.curves5={},
+	.curves9={},
+	.logicData={
+		LOGIC( SW_ADC0, OP_DD_OR, -SW_ADC1), 	// 0x21 = OR, output of this should be used to trigger pusher to activate
+										// Firing: pusher not retracted or trigger pulled
+		LOGIC(SW_FUNC0, OP_DD_AND, -SW_ADC2), 	// 0x20 = AND, Firing && rev pulled, required for full range/speed
+										// full: firing and reved 
+		LOGIC(OUT_VAR0, OP_AC_GT, 3),			// FUNC2 = var0==3, done with burst
+		LOGIC(SW_EDGE1, OP_DD_AND, SW_FUNC2)	// FUNC3 = end of burst
+		LOGIC(SW_EDGE0, OP_DD_AND, SW_FUNC2)	// FUNC4 = start of burst  
+	},
+	.pinData={
+		// input and pull-ups for low four ADC pins (fourth is currently unused)
+		.ADCDir=0x0,
+		.ADCDat=0xf,
+		
+		// endable ADC 6 and 7
+		.ADC6Enable=1,
+		.ADC7Enable=1,
+		
+		// disable PWM34 and PWM56 - four HIZ pins each
+		.PWM34Mode=0,
+		.PWM56Mode=0,
+		
+		// four HIZ pins on port B
+		.BDir=0,
+		.BDat=0
+	},
+	.edgeData={
+		-SW_ADC1,		// EDGE0 = trigger pulled
+		-SW_ADC0,		// EDGE1 = pusher fully retracted
+	},
 };
 #elif PROFILE == STRYFE
 /*
@@ -191,6 +279,80 @@ static EEMEM EEData ee_settings= {
 		.BDat=0
 	},
 	.edgeData={},
+};
+#elif PROFILE == 3 //STRYFE2, edge detector example
+/*
+Tanner stryfe:
+	ADC0 = rev pot
+	ADC1 = rev mode switch (high = push to rev, low = push to toggle)
+	ADC2 = ~rev trigger
+	ADC3 = 
+	ADC6 = 
+	ADC7 = 
+	
+	PWM1 = flywheels 
+	PWM2 = 
+
+	rev to ADC0 when mode=ptr&trigger || mode=ptt&trigger/2
+
+*/
+
+//TODO: curve names?
+
+
+EEData settings;
+static EEMEM EEData ee_settings= {
+	.mixData = {
+		// set up base valuse as floating outputs...
+		MIX(OUT_PWM1,MP_REPLACE,IN_CONSTANT0,0,1,SW_TRUE,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0,1,SW_TRUE,0),
+				
+		// rev to knob setting when active 
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC0,0xff,0,SW_FUNC4,0),
+		
+		// OUT_VAR0 = Number of edges, EDGE0 *or* EDGE1. reset on EDGE2
+		MIX(OUT_VAR0,MP_ADD,    IN_CONSTANT0,0x00,0x40,SW_FUNC1,0),
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_EDGE2,0),
+		
+			
+		},
+	.curves5={},
+	.curves9={},
+	.logicData={
+		LOGIC( -SW_ADC2,			OP_DD_AND,	SW_ADC1),		//  FUNC0 = rev trigger && mode = push-to-rev
+		
+		LOGIC( SW_EDGE0,			OP_DD_OR,		SW_EDGE1)		//  FUNC1 = both edges of rev, up or down
+		LOGIC( IN_MIXOUT(OUT_VAR0),	OP_AC_NEQ,	0x00)		//  FUNC2 = edge count=0, should rev
+		
+		LOGIC( SW_FUNC2,			OP_DD_AND,	-SW_ADC1),	//  FUNC3 = rev toggle state && mode = push-to-toggle
+		
+		LOGIC( SW_FUNC3,			OP_DD_OR,		SW_FUNC0),	//  FUNC4 = FUNC3 || FUNC0 == should rev
+		
+	
+	},
+	.pinData={
+		// input and pull-ups for low four ADC pins
+		// all four inputs, pull ups on 1,2. 0 is analog, 3 is unused
+		.ADCDir=0x1,
+		.ADCDat=0x7,
+		
+		// endable ADC 6 and 7
+		.ADC6Enable=1,
+		.ADC7Enable=1,
+		
+		// disable PWM34 and PWM56 - four HIZ pins each
+		.PWM34Mode=0,
+		.PWM56Mode=0,
+		
+		// four HIZ pins on port B
+		.BDir=0,
+		.BDat=0
+	},
+	.edgeData={
+		-SW_ADC2,		// EDGE0 = rev pulled, replaces FUNC2
+		SW_ADC2,		// EDGE1 = rev released, replaces FUNC3
+		-SW_ADC1,		// EDGE2 = mode change to push-to-toggle
+	},
 };
 #endif
 

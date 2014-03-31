@@ -86,7 +86,7 @@ int main(void)
 			// update previous values for edge detectors
 			for(int i=0;i<MAX_EDGES;i++) edgePrev[i] = read_digital(settings.edgeData[i]);
  								
-			_delay_ms(10);	
+			_delay_ms(5);	
 		}
 		
 	}
