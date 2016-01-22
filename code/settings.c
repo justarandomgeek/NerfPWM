@@ -35,13 +35,43 @@ typedef struct t_PinData {
 
 #define LOGIC(in1,function,in2) {.v1=(in1),.v2=(in2),.func=(function)}
 
+#define NONE			0
 #define RAPIDSTRIKE		1
 #define STRYFE			2
 #define RAPIDSTRIKE2	3
 
+#ifndef PROFILE
 #define PROFILE RAPIDSTRIKE
+#endif
 
-#if PROFILE == RAPIDSTRIKE
+#if PROFILE == NONE
+EEData settings;
+static EEMEM EEData ee_settings = {
+	.mixData = {
+		// set up base valuse as floating outputs...
+		MIX(OUT_PWM1,MP_REPLACE,IN_CONSTANT0,0xff,1,SW_TRUE,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0xff,0,SW_TRUE,0),
+		},
+	.curves5={},
+	.curves9={},
+	.logicData={},
+	.pinData={
+		// All ADC inputs
+		.ADCDir=0x0,	.ADCDat=0x0,
+		
+		// endable ADC 6 and 7
+		.ADC6Enable=1,	.ADC7Enable=1,
+		
+		// disable PWM34 and PWM56 - four HIZ pins each
+		.PWM34Mode=0,	.PWM56Mode=0,
+		
+		// four HIZ pins on port B
+		.BDir=0,		.BDat=0
+	},
+	.edgeData={},
+};
+
+#elif PROFILE == RAPIDSTRIKE
 /*
 my RS:
 	ADC0 = digital pusher idle (pressed when pusher fully retracted)
@@ -70,12 +100,12 @@ static EEMEM EEData ee_settings= {
 		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0x80,0,-SW_ADC2,0),
 		
 		// when firing, even if rev trigger not pulled, rev to about 3/4, and run half RoF
-		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xc0,0,SW_FUNC0,0),
-		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0x80,0,SW_FUNC0,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xB0,0,SW_FUNC0,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0xC0,0,SW_FUNC0,0),
 		
 		// when both triggers pulled, rev and pusher both to full speed (set by knob)
-		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xff,0,SW_FUNC1,0),
-		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0xff,0,SW_FUNC1,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC4,0xD0,0,SW_FUNC1,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC5,0xF0,0,SW_FUNC1,0),
 		
 		
 		},
