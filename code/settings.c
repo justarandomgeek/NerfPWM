@@ -39,10 +39,9 @@ typedef struct t_PinData {
 #define RAPIDSTRIKE		1
 #define STRYFE			2
 #define RAPIDSTRIKE2	3
+#define STRYFE2			4
 
-#ifndef PROFILE
-#define PROFILE RAPIDSTRIKE
-#endif
+#define PROFILE STRYFE
 
 #if PROFILE == NONE
 EEData settings;
@@ -234,10 +233,9 @@ Tanner stryfe:
 	ADC7 = 
 	
 	PWM1 = flywheels 
-	PWM2 = 
+	PWM2 = flywheels (Doubled up for extra current)
 
 	rev to ADC0 when mode=ptr&trigger || mode=ptt&trigger/2
-
 */
 
 //TODO: curve names?
@@ -252,6 +250,7 @@ static EEMEM EEData ee_settings= {
 				
 		// rev to knob setting when active 
 		MIX(OUT_PWM1,MP_REPLACE,IN_ADC0,0xff,0,SW_FUNC6,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC0,0xff,0,SW_FUNC6,0),
 			
 		// OUT_VAR1 = push-to-toggle state
 		// set 0xff on rising edge of first trigger pull, set 0 on falling edge of second
@@ -310,7 +309,8 @@ static EEMEM EEData ee_settings= {
 	},
 	.edgeData={},
 };
-#elif PROFILE == 3 //STRYFE2, edge detector example
+#elif PROFILE == STRYFE2 //STRYFE2, edge detector example
+//TODO: edge detector doesn't work
 /*
 Tanner stryfe:
 	ADC0 = rev pot
@@ -321,7 +321,7 @@ Tanner stryfe:
 	ADC7 = 
 	
 	PWM1 = flywheels 
-	PWM2 = 
+	PWM2 = flywheels (Doubled up for extra current)
 
 	rev to ADC0 when mode=ptr&trigger || mode=ptt&trigger/2
 
@@ -333,16 +333,19 @@ Tanner stryfe:
 EEData settings;
 static EEMEM EEData ee_settings= {
 	.mixData = {
-		// set up base valuse as floating outputs...
+		// set up base values as floating outputs...
 		MIX(OUT_PWM1,MP_REPLACE,IN_CONSTANT0,0,1,SW_TRUE,0),
 		MIX(OUT_PWM2,MP_REPLACE,IN_CONSTANT0,0,1,SW_TRUE,0),
 				
 		// rev to knob setting when active 
-		MIX(OUT_PWM1,MP_REPLACE,IN_ADC0,0xff,0,SW_FUNC4,0),
+		MIX(OUT_PWM1,MP_REPLACE,IN_ADC0,0xD0,0x10,SW_FUNC1,0),
+		MIX(OUT_PWM2,MP_REPLACE,IN_ADC0,0xD0,0x10,SW_FUNC1,0),		
 		
-		// OUT_VAR0 = Number of edges, EDGE0 *or* EDGE1. reset on EDGE2
-		MIX(OUT_VAR0,MP_ADD,    IN_CONSTANT0,0x00,0x40,SW_FUNC1,0),
-		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_EDGE2,0),
+		// OUT_VAR0 = PTT state. Reset when switching back to PTR mode
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0x10,SW_FUNC3,0),
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_FUNC4,0),
+		
+		MIX(OUT_VAR0,MP_REPLACE,IN_CONSTANT0,0x00,0x00,SW_ADC1,0),
 		
 			
 		},
@@ -350,15 +353,15 @@ static EEMEM EEData ee_settings= {
 	.curves9={},
 	.logicData={
 		LOGIC( -SW_ADC2,			OP_DD_AND,	SW_ADC1),		//  FUNC0 = rev trigger && mode = push-to-rev
+							
+		LOGIC( IN_MIXOUT(OUT_VAR0),	OP_AC_NEQ,	0x00),	//  FUNC1 = PTT state is on
 		
-		LOGIC( SW_EDGE0,			OP_DD_OR,		SW_EDGE1)		//  FUNC1 = both edges of rev, up or down
-		LOGIC( IN_MIXOUT(OUT_VAR0),	OP_AC_NEQ,	0x00)		//  FUNC2 = edge count=0, should rev
+		LOGIC( SW_EDGE1,			OP_DD_AND,	-SW_FUNC1),	//  FUNC3 = rev pulled and PTT state is off
+		LOGIC( SW_EDGE1,			OP_DD_AND,	SW_FUNC1),	//  FUNC4 = rev pulled and PTT state is on
 		
-		LOGIC( SW_FUNC2,			OP_DD_AND,	-SW_ADC1),	//  FUNC3 = rev toggle state && mode = push-to-toggle
+		LOGIC( SW_FUNC1,			OP_DD_AND,	-SW_ADC1),	//  FUNC5 = PTT state is on && mode = push-to-toggle	
 		
-		LOGIC( SW_FUNC3,			OP_DD_OR,		SW_FUNC0),	//  FUNC4 = FUNC3 || FUNC0 == should rev
-		
-	
+		LOGIC( SW_FUNC5,			OP_DD_OR,		SW_FUNC0),	//  FUNC6 = rev
 	},
 	.pinData={
 		// input and pull-ups for low four ADC pins
@@ -367,8 +370,8 @@ static EEMEM EEData ee_settings= {
 		.ADCDat=0x7,
 		
 		// endable ADC 6 and 7
-		.ADC6Enable=1,
-		.ADC7Enable=1,
+		.ADC6Enable=0,
+		.ADC7Enable=0,
 		
 		// disable PWM34 and PWM56 - four HIZ pins each
 		.PWM34Mode=0,
@@ -379,9 +382,7 @@ static EEMEM EEData ee_settings= {
 		.BDat=0
 	},
 	.edgeData={
-		-SW_ADC2,		// EDGE0 = rev pulled, replaces FUNC2
-		SW_ADC2,		// EDGE1 = rev released, replaces FUNC3
-		-SW_ADC1,		// EDGE2 = mode change to push-to-toggle
+		-SW_ADC2,		// EDGE0 = rev pulled
 	},
 };
 #endif
